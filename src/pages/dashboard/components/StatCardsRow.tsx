@@ -1,4 +1,4 @@
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 import { formatNumber } from "@/utils/helper";
 
 type Props = {

@@ -1,6 +1,6 @@
 // src/components/inputs/inputConfig.ts
 
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 
 
 export type InputConfig = {

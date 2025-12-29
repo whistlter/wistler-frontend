@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { FormInput } from "../../components/inputs/FormInput";
-import { INPUT_TYPES } from "../../components/inputs/constants";
-import { BUTTON_VARIANTS } from "../../components/button/constants";
-import { Button } from "../../components/button/Button";
+import { FormInput } from "@/components/inputs/FormInput";
+import { INPUT_TYPES } from "@/components/inputs/constants";
+import { BUTTON_TYPE } from "@/components/button/constants";
+import { Button } from "@/components/button/Button";
 
 // ----------------------
 // Page
@@ -61,7 +61,7 @@ function CreateNewPassword() {
 
           <Button
             type="submit"
-            variant={BUTTON_VARIANTS.PRIMARY}
+            variant={BUTTON_TYPE.PRIMARY}
             disabled={isSubmitting}
           >
             {isSubmitting ? "Updating..." : "Update password"}

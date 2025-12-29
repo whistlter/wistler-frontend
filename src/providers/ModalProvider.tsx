@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { ModalData, ModalOptions, ModalContextType } from './types';
-import { ModalContainer } from './ModalContainer';
+import type { ModalData, ModalOptions, ModalContextType } from './modal.types';
+import { ModalContainer } from '@/components/modal/ModalContainer';
 
 const ModalContext = createContext<ModalContextType | null>(null);
 

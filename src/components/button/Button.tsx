@@ -1,18 +1,20 @@
 // src/components/button/Button.tsx
 import clsx from "clsx";
 
-type ButtonType = "primary" | "secondary" | "tetiary";
+type ButtonVariant = "primary" | "secondary" | "tetiary";
 
 type ButtonProps = {
-  type?: ButtonType;
+  variant?: ButtonVariant;
   loading?: boolean;
   children: React.ReactNode;
   leftIcon?: string | React.ReactNode;
   rightIcon?: string | React.ReactNode;
+  type?: "button" | "submit" | "reset";
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "type">;
 
 export function Button({
-  type = "primary",
+  variant = "primary",
+  type = "button",
   loading = false,
   disabled,
   className,
@@ -23,16 +25,16 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      type="button"
+      type={type}
       disabled={disabled || loading}
       className={clsx(
         "w-full rounded-[10px] py-3 text-sm font-medium transition focus:outline-none",
         "flex items-center justify-center gap-2 ",
-        type === "primary" &&
+        variant === "primary" &&
         "bg-rose-500 text-white hover:bg-rose-600 min-w-fit cursor-pointer disabled:bg-rose-300",
-        type === "secondary" &&
+        variant === "secondary" &&
         "border border-gray-300 bg-white cursor-pointer min-w-fit text-gray-800 hover:bg-gray-100 disabled:text-gray-400 ",
-        type === "tetiary" &&
+        variant === "tetiary" &&
         "border border-gray-300 bg-white cursor-pointer text-[#FF3932] min-w-fit hover:bg-red-100 disabled:text-gray-400 ",
         (disabled || loading) && "cursor-not-allowed",
         className

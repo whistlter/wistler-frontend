@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { INPUT_CONFIG } from "./inputConfig";
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 
 type InputType =
   | "text"

@@ -7,15 +7,18 @@ import { Pagination } from "@/components/pagination/Pagination";
 import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
-import { ActionType } from "@/constant/actions";
-import { AppIcons } from "@/constant/constant";
-import { useSearchStore } from "@/features/shared-store/generalStore";
+import { ActionType } from "@/constants/actions";
+import { AppIcons } from "@/constants/constant";
+import { useSearchStore } from "@/stores/searchStore";
 import { useUsers } from "@/features/users/hooks/useUsers";
 import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export function FlaggedTab() {
+export function CommunityMembers() {
+    const navigate = useNavigate();
     const { openModal, } = useModal();
+
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
@@ -71,7 +74,28 @@ export function FlaggedTab() {
     /* ----------------------------
        ACTIONS
     ---------------------------- */
-    const takeDownFn = () => {
+    const changeUserRoleFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseRed,
+                    icon: AppIcons.userRed
+                }}
+                title="Update user role"
+                description="Choose the new role for this user. Their permissions will update immediately."
+                // warningText="All posts and members will be permanently removed."
+                primaryLabel={ActionType.UPDATE_ROLE}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.PRIMARY}
+                onPrimaryAction={async () => {
+
+                }}
+            />
+        ));
+    }
+    const removeUserFn = () => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
@@ -79,131 +103,36 @@ export function FlaggedTab() {
                     eclipse: AppIcons.eclipseYellow,
                     icon: AppIcons.warningYellow
                 }}
-                title="Take down content"
-                description="This removes the content from public view. The creator will not be notified automatically."
+                title="Remove user from community"
+                description="This user will lose access to this community and its content. They can rejoin later if needed."
                 // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.TAKE_DOWN}
+                primaryLabel={ActionType.REMOVE_USER}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
             />
         ));
     }
-    const moveToReviewFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
-                }}
-                title="Take down content"
-                description="This hides the content and places it into the review queue for further investigation."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.MOVE_TO_REVIEW}
-                primaryIntent="danger"
-                showLoader
-                buttonType={BUTTON_TYPE.PRIMARY}
-                onPrimaryAction={async () => {
-
-                }}
-            />
-        ));
-    }
-    const banUserFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
-                }}
-                title="Ban user"
-                description="Permanently blocks this user from the platform."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.BAN_USER}
-                primaryIntent="danger"
-                showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
-                onPrimaryAction={async () => {
-
-                }}
-            />
-        ));
-    }
-    const shadowBanUserFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
-                }}
-                title="Shadowban User"
-                description="The user can still post, but nobody else will see their content."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.SHADOW_BAN}
-                primaryIntent="danger"
-                showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
-                onPrimaryAction={async () => {
-
-                }}
-            />
-        ));
-    }
-    const suspendUserFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
-                }}
-                title="Suspend user"
-                description="Temporarily disables account access."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.SUSPEND_USER}
-                primaryIntent="danger"
-                showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
-                onPrimaryAction={async () => {
-
-                }}
-            />
-        ));
-    }
-
     const actions: TableAction<UserRowDTO>[] = [
         {
-            label: ActionType.TAKE_DOWN,
-            icon: Appicon.achiveArrowDown,
-            onClick: (row) => takeDownFn(),
+            label: ActionType.VIEW_PROFILE,
+            icon: Appicon.eyeOpen,
+            onClick: (row) => navigate(`/users/Details/${row.id}`),
         },
         {
-            label: ActionType.MOVE_TO_REVIEW,
-            icon: Appicon.propertySearch,
-            onClick: (row) => moveToReviewFn(),
+            label: ActionType.CHANGE_ROLE,
+            icon: Appicon.user,
+            onClick: (row) => changeUserRoleFn(),
         },
         {
-            label: ActionType.BAN_USER,
-            icon: Appicon.exclamationGray,
-            onClick: (row) => banUserFn(),
-        },
-        {
-            label: ActionType.SHADOW_BAN,
-            icon: Appicon.eyeClosed,
-            onClick: (row) => shadowBanUserFn(),
-        },
-        {
-            label: ActionType.SUSPEND_USER,
+            label: ActionType.REMOVE_USER,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => suspendUserFn(),
-        },
+            onClick: (row) => removeUserFn(),
+        }
     ];
 
     /* ----------------------------
@@ -240,19 +169,14 @@ export function FlaggedTab() {
     return (
         <>
             <div className="px-6">
-                <div className="flex w-full justify-between items-center pb-6">
-                    <div className="flex w-full flex-col items-start gap-1 shrink-0 pt-6">
-                        <div className="text-[#666] text-center text-[13px] font-medium">
-                            Content automatically or manually flagged for review
-                        </div>
-                    </div>
+                <div className="py-6">
+                    <Table
+                        data={rows}
+                        columns={columns}
+                        actions={actions}
+                        loading={isLoading}
+                    />
                 </div>
-                <Table
-                    data={rows}
-                    columns={columns}
-                    actions={actions}
-                    loading={isLoading}
-                />
 
                 <div className="mt-6">
                     <Pagination

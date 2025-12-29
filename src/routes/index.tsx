@@ -2,7 +2,7 @@ import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Loader } from "@/components/common/Loader";
-import { AppShell } from "@/components/layout/AppShell";
+import { AppShell } from "@/layouts/AppShell";
 import { ModalDemo } from "@/components/modal";
 
 // Lazy pages
@@ -12,7 +12,7 @@ const Users = lazy(() => import("@/pages/users/Users"));
 const Communities = lazy(() => import("@/pages/communities/Communities"));
 const Moderation = lazy(() => import("@/pages/moderation/ModerationPage"));
 const UserDetailsPage = lazy(() => import("@/pages/users/pages/userDetailsPage"));
-const CommunityDetailsPage = lazy(() => import("@/pages/communities/components/communityDetails/CommunityDetailsPage"));
+const CommunityDetailsPage = lazy(() => import("@/features/communities/components/communityDetails/CommunityDetailsPage"));
 const NotFound = lazy(() => import("@/pages/not-found/NotFound"));
 
 export default function AppRoutes() {

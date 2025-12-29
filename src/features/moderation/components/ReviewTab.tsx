@@ -7,22 +7,19 @@ import { Pagination } from "@/components/pagination/Pagination";
 import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
-import { ActionType } from "@/constant/actions";
-import { AppIcons } from "@/constant/constant";
-import { useSearchStore } from "@/features/shared-store/generalStore";
+import { ActionType } from "@/constants/actions";
+import { AppIcons } from "@/constants/constant";
+import { useSearchStore } from "@/stores/searchStore";
 import { useUsers } from "@/features/users/hooks/useUsers";
 import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-export function CommunityMembers() {
-    const navigate = useNavigate();
+export function ReviewTab() {
     const { openModal, } = useModal();
-
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
-        setPlaceholder('Search Flagged Content by name or email...');
+        setPlaceholder('Search Review Queue by Name or Email...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
@@ -74,28 +71,8 @@ export function CommunityMembers() {
     /* ----------------------------
        ACTIONS
     ---------------------------- */
-    const changeUserRoleFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseRed,
-                    icon: AppIcons.userRed
-                }}
-                title="Update user role"
-                description="Choose the new role for this user. Their permissions will update immediately."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.UPDATE_ROLE}
-                primaryIntent="danger"
-                showLoader
-                buttonType={BUTTON_TYPE.PRIMARY}
-                onPrimaryAction={async () => {
 
-                }}
-            />
-        ));
-    }
-    const removeUserFn = () => {
+    const takeDownFn = () => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
@@ -103,13 +80,55 @@ export function CommunityMembers() {
                     eclipse: AppIcons.eclipseYellow,
                     icon: AppIcons.warningYellow
                 }}
-                title="Remove user from community"
-                description="This user will lose access to this community and its content. They can rejoin later if needed."
+                title="Take down content"
+                description="This removes the content from public view. The creator will not be notified automatically."
                 // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.REMOVE_USER}
+                primaryLabel={ActionType.TAKE_DOWN}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+
+                }}
+            />
+        ));
+    }
+    const restoreFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseYellow,
+                    icon: AppIcons.warningYellow
+                }}
+                title="Restore content"
+                description="This makes the content visible again to the community."
+                // warningText="All posts and members will be permanently removed."
+                primaryLabel={ActionType.RESTORE}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.PRIMARY}
+                onPrimaryAction={async () => {
+
+                }}
+            />
+        ));
+    }
+    const deleteFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseYellow,
+                    icon: AppIcons.warningYellow
+                }}
+                title="Delete content"
+                description="This permanently removes the content from the platform."
+                // warningText="All posts and members will be permanently removed."
+                primaryLabel={ActionType.DELETE}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -118,21 +137,21 @@ export function CommunityMembers() {
     }
     const actions: TableAction<UserRowDTO>[] = [
         {
-            label: ActionType.VIEW_PROFILE,
-            icon: Appicon.eyeOpen,
-            onClick: (row) => navigate(`/users/Details/${row.id}`),
+            label: ActionType.TAKE_DOWN,
+            icon: Appicon.achiveArrowDown,
+            onClick: (row) => takeDownFn(),
         },
         {
-            label: ActionType.CHANGE_ROLE,
-            icon: Appicon.user,
-            onClick: (row) => changeUserRoleFn(),
+            label: ActionType.RESTORE,
+            icon: Appicon.restore,
+            onClick: (row) => restoreFn(),
         },
         {
-            label: ActionType.REMOVE_USER,
-            icon: Appicon.unavailable,
+            label: ActionType.DELETE,
+            icon: Appicon.delete_red,
             danger: true,
-            onClick: (row) => removeUserFn(),
-        }
+            onClick: (row) => deleteFn(),
+        },
     ];
 
     /* ----------------------------
@@ -169,14 +188,19 @@ export function CommunityMembers() {
     return (
         <>
             <div className="px-6">
-                <div className="py-6">
-                    <Table
-                        data={rows}
-                        columns={columns}
-                        actions={actions}
-                        loading={isLoading}
-                    />
+                <div className="flex w-full justify-between items-center pb-6">
+                    <div className="flex w-full pt-6 flex-col items-start gap-1 shrink-0">
+                        <div className="text-[#666] text-center text-[13px] font-medium">
+                            Content in this queue is hidden from users until resolved
+                        </div>
+                    </div>
                 </div>
+                <Table
+                    data={rows}
+                    columns={columns}
+                    actions={actions}
+                    loading={isLoading}
+                />
 
                 <div className="mt-6">
                     <Pagination

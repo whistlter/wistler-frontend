@@ -11,9 +11,9 @@ import { SelectComponent } from "@/components/select/selectComponent";
 import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
-import { ActionType } from "@/constant/actions";
-import { AppIcons } from "@/constant/constant";
-import { useSearchStore } from "@/features/shared-store/generalStore";
+import { ActionType } from "@/constants/actions";
+import { AppIcons } from "@/constants/constant";
+import { useSearchStore } from "@/stores/searchStore";
 import { useUsers } from "@/features/users/hooks/useUsers";
 import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
@@ -160,7 +160,7 @@ export function CommunityPosts() {
                     {/* FOOTER (FIXED) */}
                     <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">
                         <div className="flex gap-3">
-                            <Button onClick={close} type={BUTTON_TYPE.SECONDARY}>
+                            <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>
                                 Cancel
                             </Button>
                             <Button
@@ -191,7 +191,7 @@ export function CommunityPosts() {
                 primaryLabel={ActionType.MOVE_TO_REVIEW}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.PRIMARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -212,7 +212,7 @@ export function CommunityPosts() {
                 primaryLabel={ActionType.DELETE}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}

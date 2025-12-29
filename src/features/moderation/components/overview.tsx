@@ -1,7 +1,7 @@
 // src/features/moderation/components/OverviewTab.tsx
 
 import { ActivitiesLog } from "@/components/activityLog/ActivitiesLog";
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 
 type ModerationStats = {
     flaggedPosts: number;

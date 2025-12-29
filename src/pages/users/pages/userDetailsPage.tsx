@@ -1,13 +1,13 @@
 // src/features/moderation/ModerationPage.tsx
-import { useModeration } from "@/pages/moderation/hook/useModerator";
+import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { useState } from "react";
-import { UsercommunityTap } from "./usercommunityTap";
+import { UsercommunityTap } from "@/features/users/components/UsercommunityTap";
 import { ActivitiesLog } from "@/components/activityLog/ActivitiesLog";
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/button/Button";
-import { ActionType } from "@/constant/actions";
+import { ActionType } from "@/constants/actions";
 import { Dropdown } from "@/components/dropdown/dropdown";
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import type { dropdownOption } from "@/components/dropdown/types";
 import { ActionModal } from "@/components/modal/actionModal";
@@ -91,7 +91,7 @@ export default function UserDetailsPage() {
                 primaryLabel={ActionType.SUSPEND_USER}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -112,7 +112,7 @@ export default function UserDetailsPage() {
                 primaryLabel={ActionType.SHADOW_BAN}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -133,7 +133,7 @@ export default function UserDetailsPage() {
                 primaryLabel={ActionType.BAN_USER}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -157,7 +157,7 @@ This will immediately invalidate their current password."
                 primaryLabel={ActionType.SEND_RESET_INSTRUCTION}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.PRIMARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -195,7 +195,7 @@ This will immediately invalidate their current password."
 
                 <div className="grid grid-cols-2 gap-6 self-center lg:flex lg:justify-end  px-6">
                     <div className="lg:w-70 sm:50">
-                        <Button leftIcon={AppIcons.unavailable} type={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
+                        <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
                             {ActionType.SUSPEND_COMMUNITY}
                         </Button>
                     </div>

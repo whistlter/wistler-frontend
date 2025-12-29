@@ -7,19 +7,19 @@ import { Pagination } from "@/components/pagination/Pagination";
 import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
-import { ActionType } from "@/constant/actions";
-import { AppIcons } from "@/constant/constant";
-import { useSearchStore } from "@/features/shared-store/generalStore";
+import { ActionType } from "@/constants/actions";
+import { AppIcons } from "@/constants/constant";
+import { useSearchStore } from "@/stores/searchStore";
 import { useUsers } from "@/features/users/hooks/useUsers";
 import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
 
-export function ReviewTab() {
+export function FlaggedTab() {
     const { openModal, } = useModal();
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
-        setPlaceholder('Search Review Queue by Name or Email...');
+        setPlaceholder('Search Flagged Content by name or email...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
@@ -71,7 +71,6 @@ export function ReviewTab() {
     /* ----------------------------
        ACTIONS
     ---------------------------- */
-
     const takeDownFn = () => {
         openModal(({ close }) => (
             <ActionModal
@@ -86,14 +85,14 @@ export function ReviewTab() {
                 primaryLabel={ActionType.TAKE_DOWN}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
             />
         ));
     }
-    const restoreFn = () => {
+    const moveToReviewFn = () => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
@@ -101,20 +100,20 @@ export function ReviewTab() {
                     eclipse: AppIcons.eclipseYellow,
                     icon: AppIcons.warningYellow
                 }}
-                title="Restore content"
-                description="This makes the content visible again to the community."
+                title="Take down content"
+                description="This hides the content and places it into the review queue for further investigation."
                 // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.RESTORE}
+                primaryLabel={ActionType.MOVE_TO_REVIEW}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.PRIMARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
 
                 }}
             />
         ));
     }
-    const deleteFn = () => {
+    const banUserFn = () => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
@@ -122,19 +121,62 @@ export function ReviewTab() {
                     eclipse: AppIcons.eclipseYellow,
                     icon: AppIcons.warningYellow
                 }}
-                title="Delete content"
-                description="This permanently removes the content from the platform."
+                title="Ban user"
+                description="Permanently blocks this user from the platform."
                 // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.DELETE}
+                primaryLabel={ActionType.BAN_USER}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
             />
         ));
     }
+    const shadowBanUserFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseYellow,
+                    icon: AppIcons.warningYellow
+                }}
+                title="Shadowban User"
+                description="The user can still post, but nobody else will see their content."
+                // warningText="All posts and members will be permanently removed."
+                primaryLabel={ActionType.SHADOW_BAN}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+
+                }}
+            />
+        ));
+    }
+    const suspendUserFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseYellow,
+                    icon: AppIcons.warningYellow
+                }}
+                title="Suspend user"
+                description="Temporarily disables account access."
+                // warningText="All posts and members will be permanently removed."
+                primaryLabel={ActionType.SUSPEND_USER}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+
+                }}
+            />
+        ));
+    }
+
     const actions: TableAction<UserRowDTO>[] = [
         {
             label: ActionType.TAKE_DOWN,
@@ -142,15 +184,25 @@ export function ReviewTab() {
             onClick: (row) => takeDownFn(),
         },
         {
-            label: ActionType.RESTORE,
-            icon: Appicon.restore,
-            onClick: (row) => restoreFn(),
+            label: ActionType.MOVE_TO_REVIEW,
+            icon: Appicon.propertySearch,
+            onClick: (row) => moveToReviewFn(),
         },
         {
-            label: ActionType.DELETE,
-            icon: Appicon.delete_red,
+            label: ActionType.BAN_USER,
+            icon: Appicon.exclamationGray,
+            onClick: (row) => banUserFn(),
+        },
+        {
+            label: ActionType.SHADOW_BAN,
+            icon: Appicon.eyeClosed,
+            onClick: (row) => shadowBanUserFn(),
+        },
+        {
+            label: ActionType.SUSPEND_USER,
+            icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => deleteFn(),
+            onClick: (row) => suspendUserFn(),
         },
     ];
 
@@ -189,9 +241,9 @@ export function ReviewTab() {
         <>
             <div className="px-6">
                 <div className="flex w-full justify-between items-center pb-6">
-                    <div className="flex w-full pt-6 flex-col items-start gap-1 shrink-0">
+                    <div className="flex w-full flex-col items-start gap-1 shrink-0 pt-6">
                         <div className="text-[#666] text-center text-[13px] font-medium">
-                            Content in this queue is hidden from users until resolved
+                            Content automatically or manually flagged for review
                         </div>
                     </div>
                 </div>

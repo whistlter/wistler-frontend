@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import type { ModalData } from './types';
+import type { ModalData } from '@/providers/modal.types';
 
 interface ModalProps {
     modal: ModalData;

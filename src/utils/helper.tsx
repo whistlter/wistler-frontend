@@ -1,4 +1,4 @@
-import { GeneralEnum } from "@/Enum/generalEnum";
+import { GeneralEnum } from "@/constants/enums";
 
 export function formatNumber(value: number): string {
     if (value < 1000) return value.toString();

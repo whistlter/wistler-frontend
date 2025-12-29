@@ -7,8 +7,8 @@ import { Pagination } from "@/components/pagination/Pagination";
 import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
-import { AppIcons } from "@/constant/constant";
-import { useSearchStore } from "@/features/shared-store/generalStore";
+import { AppIcons } from "@/constants/constant";
+import { useSearchStore } from "@/stores/searchStore";
 import { useUsers } from "@/features/users/hooks/useUsers";
 import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
@@ -87,7 +87,7 @@ export function UsercommunityTap() {
                 primaryLabel="Remove user"
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -108,7 +108,7 @@ export function UsercommunityTap() {
                 primaryLabel="Update role"
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.PRIMARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
 
                 }}

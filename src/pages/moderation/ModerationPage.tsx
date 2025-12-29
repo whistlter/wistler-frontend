@@ -1,9 +1,9 @@
 // src/features/moderation/ModerationPage.tsx
 import { useState } from "react";
-import { useModeration } from "./hook/useModerator";
-import { FlaggedTab } from "./component/FlaggedTab";
-import { ReviewTab } from "./component/ReviewTab";
-import { OverviewTab } from "./component/overview";
+import { useModeration } from "@/features/moderation/hooks/useModerator";
+import { FlaggedTab } from "@/features/moderation/components/FlaggedTab";
+import { ReviewTab } from "@/features/moderation/components/ReviewTab";
+import { OverviewTab } from "@/features/moderation/components/overview";
 
 
 type Tab = "overview" | "flagged" | "review";

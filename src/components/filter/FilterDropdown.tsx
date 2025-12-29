@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { Portal } from "../common/Portal";
 import type { FilterOption } from "./types";
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 
 type FilterDropdownProps = {
   options: FilterOption[];

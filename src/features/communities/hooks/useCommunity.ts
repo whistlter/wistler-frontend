@@ -1,5 +1,5 @@
 // src/features/users/hooks/useUsers.ts
-import type { CommunitiesApi } from '@/features/users/types/comunity.type';
+import type { CommunitiesApi } from '@/features/communities/types/community.types';
 import { useGet, usePost, usePut, useDelete } from '@/hooks/useApi';
 
 export interface User {

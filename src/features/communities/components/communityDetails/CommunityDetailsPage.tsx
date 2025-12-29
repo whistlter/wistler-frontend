@@ -1,16 +1,16 @@
 // src/features/moderation/ModerationPage.tsx
-import { useModeration } from "@/pages/moderation/hook/useModerator";
+import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { useState } from "react";
 import { CommunityMembers } from "./pages/communityMembers";
 import { CommunityPosts } from "./pages/communityPosts";
 import { CommunityOverviewTab } from "./pages/communityOverview";
 import { FilterDropdown } from "@/components/filter/FilterDropdown";
 import { Button } from "@/components/button/Button";
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { BUTTON_TYPE } from "@/components/button/constants";
-import { ActionType } from "@/constant/actions";
+import { ActionType } from "@/constants/actions";
 import { ActionModal } from "@/components/modal/actionModal";
 import { NavLink } from "react-router-dom";
 
@@ -75,7 +75,7 @@ export default function CommunityDetailsPage() {
                 primaryLabel={ActionType.SUSPEND_USER}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}
@@ -112,7 +112,7 @@ export default function CommunityDetailsPage() {
                     </div>
                     <div className={` grid ${activeTab === "overview" ? 'grid-cols-1 lg:py-6' : 'grid-cols-[1fr_100px] justify-end w-full justify-items-center gap-6 lg:py-6'}  `}>
                         <div className="lg:grid lg:w-70 lg:ml-auto w-full">
-                            <Button leftIcon={AppIcons.unavailable} type={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
+                            <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
                                 {ActionType.SUSPEND_COMMUNITY}
                             </Button>
 

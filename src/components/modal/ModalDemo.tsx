@@ -1,5 +1,6 @@
+import { useModal } from '@/providers/ModalProvider';
 import React from 'react';
-import { useModal } from './ModalContext';
+
 
 export const ModalDemo: React.FC = () => {
     const { openModal, } = useModal();

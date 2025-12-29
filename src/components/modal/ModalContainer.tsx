@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ModalData } from './types';
+import type { ModalData } from '@/providers/modal.types';
 import { Modal } from './Modal';
 
 interface ModalContainerProps {

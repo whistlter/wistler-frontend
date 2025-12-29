@@ -7,13 +7,13 @@ import { useEffect, useState } from "react";
 import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { FilterDropdown } from "@/components/filter/FilterDropdown";
 import type { FilterOption } from "@/components/filter/types";
-import { AppIcons } from "@/constant/constant";
-import { useSearchStore } from "@/features/shared-store/generalStore";
+import { AppIcons } from "@/constants/constant";
+import { useSearchStore } from "@/stores/searchStore";
 import { Navigate, useNavigate } from "react-router-dom";
 import { ActionModal } from "@/components/modal/actionModal";
 import { useModal } from "@/components/modal";
 import { BUTTON_TYPE } from "@/components/button/constants";
-import { ActionType } from "@/constant/actions";
+import { ActionType } from "@/constants/actions";
 
 export default function Users() {
     const { openModal, } = useModal();
@@ -85,7 +85,7 @@ export default function Users() {
                 primaryLabel={ActionType.SUSPEND_USER}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
 
                 }}

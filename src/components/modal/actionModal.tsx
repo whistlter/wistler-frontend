@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Button } from "../button/Button";
-import { BUTTON_TYPE } from "../button/constants";
-import { ActionType } from "@/constant/actions";
-import { FormInput } from "../inputs/FormInput";
-import { INPUT_TYPES } from "../inputs/constants";
-import { SelectComponent } from "../select/selectComponent";
+import { Button } from "@/components/button/Button";
+import { BUTTON_TYPE } from "@/components/button/constants";
+import { ActionType } from "@/constants/actions";
+import { FormInput } from "@/components/inputs/FormInput";
+import { INPUT_TYPES } from "@/components/inputs/constants";
+import { SelectComponent } from "@/components/select/selectComponent";
 
 type ActionModalProps = {
     icon: {
@@ -24,7 +24,7 @@ type ActionModalProps = {
 
     showLoader?: boolean;
     autoCloseOnSuccess?: boolean;
-    buttonType: any;
+    buttonVariant: any;
 
     close: () => void; // injected from modal system
 };
@@ -33,7 +33,7 @@ export const ActionModal = ({
     icon,
     title,
     description,
-    buttonType,
+    buttonVariant,
     body,
     warningText,
     primaryLabel,
@@ -114,11 +114,11 @@ export const ActionModal = ({
             {/* Footer */}
             <div className="flex items-center gap-2 self-stretch px-4 py-3 border-t border-[#E8E8E8] bg-white">
 
-                <Button onClick={close} type={BUTTON_TYPE.SECONDARY}>
+                <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>
                     Cancel
                 </Button>
 
-                <Button onClick={handlePrimaryClick} disabled={loading} type={buttonType}>
+                <Button onClick={handlePrimaryClick} disabled={loading} variant={buttonVariant}>
                     {loading && showLoader ? 'Processing…' : primaryLabel}
                 </Button>
             </div>

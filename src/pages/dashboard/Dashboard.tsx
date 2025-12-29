@@ -1,4 +1,4 @@
-import { AppIcons } from "@/constant/constant";
+import { AppIcons } from "@/constants/constant";
 import { ModerationOverviewCard } from "./components/ModerationOverviewCard";
 import { RecentActivityCard } from "./components/RecentActivityCard";
 import { StatCardsRow } from "./components/StatCardsRow";
@@ -117,7 +117,7 @@ export default function DashboardPage() {
           {/* FOOTER (FIXED) */}
           <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">
             <div className="flex gap-3">
-              <Button onClick={close} type={BUTTON_TYPE.SECONDARY}>
+              <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>
                 Cancel
               </Button>
               <Button

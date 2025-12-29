@@ -1,6 +1,6 @@
 import { Bell, ChevronDown } from 'lucide-react';
-import { FormInput } from '../inputs/FormInput';
-import { useSearchStore } from '@/features/shared-store/generalStore';
+import { FormInput } from '@/components/inputs/FormInput';
+import { useSearchStore } from '@/stores/searchStore';
 
 export const Topbar = () => {
     const { searchTerm, setSearchTerm, placeholder } = useSearchStore();

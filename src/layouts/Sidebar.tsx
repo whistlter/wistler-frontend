@@ -1,11 +1,11 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, MessageSquare, Flag, Settings, LogOut } from 'lucide-react';
 import { useAuthUser, useLogoutAction } from '@/features/auth/stores/auth.store';
-import { AppIcons } from '@/constant/constant';
-import { ActionType } from '@/constant/actions';
-import { BUTTON_TYPE } from '../button/constants';
-import { ActionModal } from '../modal/actionModal';
-import { useModal } from '../modal';
+import { AppIcons } from '@/constants/constant';
+import { ActionType } from '@/constants/actions';
+import { BUTTON_TYPE } from '@/components/button/constants';
+import { ActionModal } from '@/components/modal/actionModal';
+import { useModal } from '@/components/modal';
 
 const Sidebar = () => {
     const { openModal, } = useModal();
@@ -52,7 +52,7 @@ const Sidebar = () => {
                 primaryLabel={ActionType.LOGOUT}
                 primaryIntent="danger"
                 showLoader
-                buttonType={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
                     handleLogout();
                 }}
