@@ -33,3 +33,61 @@ export function mapUserToRowDTO(user: ModeratorApi): ModeratorRowDTO {
         }),
     };
 }
+
+// src/api/types/moderation.api.ts
+export type FlaggedContentApi = {
+    id: number;
+    content_preview: string;
+    reason: string;
+    flags_count: number;
+    community_name: string;
+};
+
+export type FlaggedContentRowDTO = {
+    id: number;
+    content_preview: string;
+    reason: string;
+    flags: string;
+    community: string;
+    status: string; // Required by Table component constraint
+};
+
+export function mapFlaggedContentToRowDTO(content: FlaggedContentApi): FlaggedContentRowDTO {
+    return {
+        id: content.id,
+        content_preview: content.content_preview,
+        reason: content.reason,
+        flags: content.flags_count.toString(),
+        community: content.community_name,
+        status: "Active", // Dummy status
+    };
+}
+
+export type ReviewQueueApi = {
+    id: number;
+    content: string;
+    reason: string;
+    created_at: string; // ISO date
+};
+
+export type ReviewQueueRowDTO = {
+    id: number;
+    content: string;
+    reason: string;
+    date: string;
+    status: string; // Required by Table component constraint
+};
+
+export function mapReviewQueueToRowDTO(item: ReviewQueueApi): ReviewQueueRowDTO {
+    return {
+        id: item.id,
+        content: item.content,
+        reason: item.reason,
+        date: new Date(item.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+        }),
+        status: "Active", // Dummy status
+    };
+}

@@ -10,6 +10,8 @@ export type AuthUser = {
   id: number;
   email: string;
   name: string;
+  first_name: string;
+  last_name: string;
 };
 
 type AuthState = {
@@ -46,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
             },
             false,
-            "auth/login"
+            "/login"
           ),
 
         logout: () => {
@@ -58,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: false,
             },
             false,
-            "auth/logout"
+            "/logout"
           );
         },
 
@@ -70,7 +72,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: Boolean(accessToken),
             },
             false,
-            "auth/hydrate"
+            "/hydrate"
           ),
       }),
       {

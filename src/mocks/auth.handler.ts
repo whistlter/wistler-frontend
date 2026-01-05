@@ -1,33 +1,9 @@
-import { http, HttpResponse } from "msw";
+import { http, passthrough } from "msw";
 
-type LoginBody = {
-  email: string;
-  password: string;
-};
-
-export const authHandler = http.post(
-  "http://localhost:3000/api/auth/login",
-  async ({ request }) => {
-    const body = (await request.json()) as LoginBody;
-
-    if (
-      body.email === "admin@test.com" &&
-      body.password === "password"
-    ) {
-      return HttpResponse.json({
-        accessToken: "fake-access-token",
-        refreshToken: "fake-refresh-token",
-        user: {
-          id: 1,
-          email: body.email,
-          name: "Admin User",
-        },
-      });
-    }
-
-    return HttpResponse.json(
-      { message: "Invalid credentials" },
-      { status: 401 }
-    );
-  }
-);
+// All authentication mocks have been removed to use the real backend.
+// We keep an explicit passthrough for these routes just in case, 
+// though removing them from the worker setup is the primary way to disable them.
+export const authHandlers = [
+  http.all("*/v1/admin/auth/*", () => passthrough()),
+  http.all("*/v1/admin/forget-password/*", () => passthrough()),
+];

@@ -41,12 +41,12 @@ export function RecentActivityCard({
           >
             <div className="flex flex-col gap-1">
 
-              <p className="text-[13px] font-medium text-[#1A1A1A] flex gap-2">
+              <div className="text-[13px] font-medium text-[#1A1A1A] flex gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F5F5] text-sm flex-shrink-0">
                   <img src={getActivityIcon(item.title)} alt="" />
                 </div>
                 {item.title}
-              </p>
+              </div>
               <p className="text-[13px] font-medium text-[#969696]">
                 {item.date}
               </p>

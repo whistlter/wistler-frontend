@@ -6,7 +6,7 @@ export function Loader({
     fullScreen?: boolean;
 }) {
     const content = (
-        <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="flex flex-col items-center justify-center space-y-4 h-[100vh]">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-rose-500" />
             {text && <p className="text-sm font-medium text-gray-500">{text}</p>}
         </div>

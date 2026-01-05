@@ -2,7 +2,8 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { TableColumn, TableAction } from "./types";
-import { TABLE_VARIANTE } from "./enum/TableEnum";
+import { USER_TABLE_VARIANTE } from "./enum/TableEnum";
+import { statusToColor } from "@/utils/helper";
 
 // Portal component for rendering overlay
 function Portal({ children }: { children: React.ReactNode }) {
@@ -189,20 +190,17 @@ export function Table<T extends {
                                         className="px-4 py-4 text-sm text-[#0A0D14] align-middle"
                                     >
                                         {/* STATUS column – handled internally */}
-                                        {col.key === TABLE_VARIANTE.STATUS ? (
+                                        {col.key === USER_TABLE_VARIANTE.STATUS ? (
                                             <span
                                                 className={`inline-flex items-center gap-2 rounded-[5px] border px-3 py-1 text-sm
                 ${row.status === "Active"
                                                         ? "border-green-200 bg-green-50 text-green-600"
                                                         : "border-gray-300 bg-gray-50 text-gray-500"
                                                     }
-              `}
+               `}
                                             >
                                                 <span
-                                                    className={`h-2 w-2 rounded-[2px] ${row.status === "Active"
-                                                        ? "bg-green-600"
-                                                        : "bg-gray-400"
-                                                        }`}
+                                                    className={`h-2 w-2 rounded-[2px] ${statusToColor(row.status)}`}
                                                 />
                                                 {row.status}
                                             </span>
@@ -272,13 +270,13 @@ export function Table<T extends {
                                 {/* Value */}
                                 <span className="text-sm text-[#0A0D14] flex-1 text-right">
                                     {/* STATUS column – handled internally */}
-                                    {col.key === TABLE_VARIANTE.STATUS ? (
+                                    {col.key === USER_TABLE_VARIANTE.STATUS ? (
                                         <span
                                             className={`inline-flex items-center gap-2 rounded-[5px] border px-3 py-1 text-sm ${row.status === "Active"
                                                 ? "border-green-200 bg-green-50 text-green-600"
                                                 : "border-gray-300 bg-gray-50 text-gray-500"
                                                 }
-          `}
+           `}
                                         >
                                             <span
                                                 className={`h-2 w-2 rounded-[2px] ${row.status === "Active"

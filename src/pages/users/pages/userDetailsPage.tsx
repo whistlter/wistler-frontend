@@ -1,9 +1,8 @@
-// src/features/moderation/ModerationPage.tsx
-import { useModeration } from "@/features/moderation/hooks/useModerator";
+// src/pages/users/pages/userDetailsPage.tsx
 import { useState } from "react";
 import { UsercommunityTap } from "@/features/users/components/UsercommunityTap";
 import { ActivitiesLog } from "@/components/activityLog/ActivitiesLog";
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import { Button } from "@/components/button/Button";
 import { ActionType } from "@/constants/actions";
 import { Dropdown } from "@/components/dropdown/dropdown";
@@ -12,29 +11,40 @@ import { BUTTON_TYPE } from "@/components/button/constants";
 import type { dropdownOption } from "@/components/dropdown/types";
 import { ActionModal } from "@/components/modal/actionModal";
 import { useModal } from "@/components/modal";
-
-
+import { useUser, useBlockUser, useResetUserPassword } from "@/features/users/hooks/useUsers";
+import { useModeration } from "@/features/moderation/hooks/useModerator";
+import { statusToColor } from "@/utils/helper";
+import { Loader } from "@/components/common/Loader";
 
 type Tab = "Communities" | "Activities";
 
 export default function UserDetailsPage() {
-    const { openModal, } = useModal();
+    const { id: userId } = useParams<{ id: string }>();
+    const { openModal } = useModal();
     const [activeTab, setActiveTab] = useState<Tab>("Communities");
-    const { stats, activities, isLoading, isError, error } = useModeration();
+
+    // Fetch User Data
+    const { data: userResponse, isLoading: isUserLoading, isError: isUserError, error: userError } = useUser(userId || "");
+    const user = userResponse?.payload?.user;
+
+    // Fetch Moderation/Activities
+    const { stats, activities, isLoading: isModLoading } = useModeration();
+
+    const { mutateAsync: blockUser } = useBlockUser();
+    const { mutateAsync: resetPassword } = useResetUserPassword();
 
     const tabs = [
         { key: "Communities" as const, label: "Communities" },
         { key: "Activities" as const, label: "Activities" },
-
     ];
 
     /* ----------------------------
        ERROR STATE
     ---------------------------- */
-    if (isError) {
+    if (isUserError) {
         return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load moderation data"}
+                {(userError as any)?.message ?? "Failed to load user data"}
             </div>
         );
     }
@@ -42,25 +52,24 @@ export default function UserDetailsPage() {
     /* ----------------------------
        LOADING STATE
     ---------------------------- */
-    if (isLoading) {
+    if (isUserLoading || isModLoading) {
         return (
-            <div className="py-20 text-center text-[13px] text-[#969696]">
-                Loading moderation data…
-            </div>
+            <Loader fullScreen={false} text="Loading user details..." />
         );
     }
 
     /* ----------------------------
        NO DATA STATE
     ---------------------------- */
-    if (!stats) {
+    if (!user) {
         return (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                No moderation data available
+                No user data available
             </div>
         );
     }
-    const dropdownOption: dropdownOption[] = [
+
+    const dropdownOptions: dropdownOption[] = [
         {
             label: ActionType.SHADOW_BAN_USER,
             value: ActionType.SHADOW_BAN_USER,
@@ -77,6 +86,7 @@ export default function UserDetailsPage() {
             icon: AppIcons.reset,
         },
     ];
+
     const suspendUserFn = () => {
         openModal(({ close }) => (
             <ActionModal
@@ -87,17 +97,18 @@ export default function UserDetailsPage() {
                 }}
                 title={ActionType.SUSPEND_USER}
                 description="This will temporarily block the user from accessing their account. They will not be able to sign in until reinstated."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.SUSPEND_USER}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    if (userId) await blockUser(userId);
+                    close();
                 }}
             />
         ));
     }
+
     const shadowBanUserFn = () => {
         openModal(({ close }) => (
             <ActionModal
@@ -108,17 +119,17 @@ export default function UserDetailsPage() {
                 }}
                 title={ActionType.SHADOW_BAN_USER}
                 description="The user can still post, but nobody else will see their content."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.SHADOW_BAN}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    close();
                 }}
             />
         ));
     }
+
     const banUserFn = () => {
         openModal(({ close }) => (
             <ActionModal
@@ -129,21 +140,20 @@ export default function UserDetailsPage() {
                 }}
                 title="Ban user"
                 description="Permanently blocks this user from the platform."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.BAN_USER}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    close();
                 }}
             />
         ));
     }
-    const sendResetInstructionFn = () => {
-        const name = 'Samuel Emmanuel';
-        openModal(({ close }) => (
 
+    const sendResetInstructionFn = () => {
+        const name = `${user.first_name} ${user.last_name}`;
+        openModal(({ close }) => (
             <ActionModal
                 close={close}
                 icon={{
@@ -152,66 +162,61 @@ export default function UserDetailsPage() {
                 }}
                 title={`Reset password for ${name}`}
                 description="Are you sure you want to reset this user’s password?"
-                warningText="They will receive an email with instructions to create a new one.
-This will immediately invalidate their current password."
+                warningText="They will receive an email with instructions to create a new one. This will immediately invalidate their current password."
                 primaryLabel={ActionType.SEND_RESET_INSTRUCTION}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
-
+                    if (userId) await resetPassword(userId);
+                    close();
                 }}
             />
         ));
     }
 
-
-    const filterOptionFnc = (value: string) => {
-        console.log(value)
+    const handleMoreOptions = (value: string) => {
         if (value === ActionType.RESET_PASSWORD) {
             sendResetInstructionFn();
         } else if (value === ActionType.BAN_USER) {
             banUserFn()
-        } else {
+        } else if (value === ActionType.SHADOW_BAN_USER) {
             shadowBanUserFn()
         }
     }
-    /* ----------------------------
-       RENDER
-    ---------------------------- */
+
     return (
         <div className="flex w-full flex-col py-4">
             {/* HEADER */}
             <div className=" grid grid-cols-1 lg:grid-cols-2 pb-6 gap-6">
                 <div className="pl-6">
                     <p className=" flex text-[13px] font-normal text-[#666] my-2">
-                        <NavLink to={'/users'}>Users</NavLink> <img src={AppIcons.chevronrightGrey} alt="" /> <span className="text-[#FF2860]">{'Oliver Bennett'}</span>
+                        <NavLink to={'/users'}>Users</NavLink> <img src={AppIcons.chevronrightGrey} alt="" /> <span className="text-[#FF2860]">{`${user.first_name} ${user.last_name}`}</span>
                     </p>
                     <h1 className="text-[19px] font-semibold text-[#0A0D14] leading-tight">
                         Profile Details
                     </h1>
-
                 </div>
 
                 <div className="grid grid-cols-2 gap-6 self-center lg:flex lg:justify-end  px-6">
                     <div className="lg:w-70 sm:50">
                         <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
-                            {ActionType.SUSPEND_COMMUNITY}
+                            {ActionType.SUSPEND_USER}
                         </Button>
                     </div>
                     <div className="grid  md:w-fit md:flex md:justify-end md:itens-center">
-                        <Dropdown options={dropdownOption} onSelect={(value) => filterOptionFnc(value.value)} label="More options" LeftIcon={AppIcons.verticalThreeDot} />
-
+                        <Dropdown options={dropdownOptions} onSelect={(val) => handleMoreOptions(val.value)} label="More options" LeftIcon={AppIcons.verticalThreeDot} />
                     </div>
                 </div>
             </div>
-            <div className="w-full  bg-white px-8 py-6 border border-[#EFEFF3]">
+
+            <div className="w-full bg-white px-8 py-6 border border-[#EFEFF3]">
                 {/* Top section */}
                 <div className="flex items-start gap-4">
                     {/* Avatar */}
                     <img
-                        src="https://i.pravatar.cc/100?img=12"
-                        alt="Oliver Bennett"
+                        src={user.image || "https://i.pravatar.cc/100?img=12"}
+                        alt={user.first_name}
                         className="h-14 w-14 rounded-full object-cover"
                     />
 
@@ -219,20 +224,27 @@ This will immediately invalidate their current password."
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-3">
                             <h2 className="text-[19px] font-semibold text-[#0A0D14]">
-                                Oliver Bennett
+                                {user.first_name} {user.last_name}
                             </h2>
 
                             {/* Status pill */}
-                            <div className="flex items-center gap-2 rounded-[5px] border border-[#E8E8E8] px-3 py-1 text-[13px] font-medium text-[#666]">
-                                <span className="h-[6px] w-[6px] rounded-[1px] bg-[#57A523]" />
-                                Active
-                            </div>
+                            <span className={`inline-flex items-center gap-2 rounded-[5px] border px-3 py-1 text-sm
+                                ${user.status === "Active"
+                                    ? "border-green-200 bg-green-50 text-green-600"
+                                    : "border-gray-300 bg-gray-50 text-gray-500"
+                                }
+                            `}>
+                                <span
+                                    className={`h-2 w-2 rounded-[2px] ${statusToColor(user.status)}`}
+                                />
+                                {user.status}
+                            </span>
                         </div>
 
                         {/* Location */}
                         <div className="flex items-center gap-2 text-[13px] font-medium text-[#666]">
                             <img src={AppIcons.location} alt="" />
-                            Melbourne, Australia
+                            {user.country || "Unknown Location"}
                         </div>
                     </div>
                 </div>
@@ -241,12 +253,12 @@ This will immediately invalidate their current password."
                 <div className="mt-6 flex flex-wrap items-center gap-6 text-[13px] font-medium text-[#666]">
                     <div className="flex items-center gap-2">
                         <img src={AppIcons.calendar2} alt="" />
-                        Joined: January 2024
+                        Joined: {user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : 'N/A'}
                     </div>
 
                     <div className="flex items-center gap-2">
                         <img src={AppIcons.activitygrey} alt="" />
-                        Last Active: 2 days ago
+                        Last Active: {user.last_active ? new Date(user.last_active).toLocaleString() : 'N/A'}
                     </div>
                 </div>
 
@@ -254,20 +266,20 @@ This will immediately invalidate their current password."
                 <div className="mt-6 flex flex-wrap gap-4">
                     <div className="flex items-center gap-3 rounded-xl border border-[#E8E8E8] px-4 py-3 text-[13px] font-medium text-[#666]">
                         <img src={AppIcons.mail} alt="" />
-                        bennettoliver@gmail.com
+                        {user.email}
                     </div>
 
                     <div className="flex items-center gap-3 rounded-xl border border-[#E8E8E8] px-4 py-3 text-[13px] font-medium text-[#666]">
                         <img src={AppIcons.call} alt="" />
-                        +234 8130 466 995
+                        {user.country_code ? `+${user.country_code} ` : ''}{user.phone || 'N/A'}
                     </div>
                 </div>
             </div>
+
             {/* TABS */}
-            <div className="flex  self-stretch  border-b   border-[#E8E8E8] bg-white w-full">
+            <div className="flex self-stretch border-b border-[#E8E8E8] bg-white w-full">
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.key;
-
                     return (
                         <button
                             key={tab.key}
@@ -285,7 +297,7 @@ This will immediately invalidate their current password."
             </div>
 
             {/* TAB CONTENT */}
-            {activeTab === "Activities" && (
+            {activeTab === "Activities" && stats && (
                 <ActivitiesLog stats={stats} activities={activities || []} />
             )}
             {activeTab === "Communities" && <UsercommunityTap />}

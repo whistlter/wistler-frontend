@@ -1,67 +1,136 @@
-// src/features/users/hooks/useUsers.ts
-import type { CommunitiesApi } from '@/features/communities/types/community.types';
-import { useGet, usePost, usePut, useDelete } from '@/hooks/useApi';
+// src/features/communities/hooks/useCommunity.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/axios';
+import { useGet, useDelete } from '@/hooks/useApi';
+import type { CommunitiesApi } from '../types/community.types';
 
-export interface User {
-    id: string;
-    name: string;
-    email: string;
-    status: 'Active' | 'Inactive';
+export interface CommunitiesResponse {
+    message: string;
+    payload: {
+        data: CommunitiesApi[];
+        total: number;
+        page: number;
+        pageSize: number;
+    };
+    status: string;
 }
 
-export interface PaginatedUsers {
-    data: CommunitiesApi[];
-    total: number;
-    page: number;
-    pageSize: number;
-}
+// GET all communities with pagination
+export function useCommunities(page: number, pageSize: number = 30, searchTerm?: string) {
+    const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+    });
 
-// GET all users with pagination
-export function useCommunities(page: number, pageSize: number = 10) {
-    return useGet<PaginatedUsers>(
-        ['users', page.toString(), pageSize.toString()], // Convert to strings
-        `/users?page=${page}&limit=${pageSize}`,
+    if (searchTerm && searchTerm.trim()) {
+        params.append('search', searchTerm.trim());
+    }
+
+    return useGet<CommunitiesResponse>(
+        ['communities', page.toString(), pageSize.toString(), searchTerm || ''],
+        `/communities?${params.toString()}`,
         {
             staleTime: 2 * 60 * 1000,
         }
     );
 }
 
-// GET single user
+export interface SingleCommunityResponse {
+    message: string;
+    payload: {
+        community: CommunitiesApi;
+    };
+    status: string;
+}
+
+// GET single community
 export function useCommunity(id: string) {
-    return useGet<User>(
-        ['users', id],
-        `/users/${id}`,
-        {
-            enabled: !!id,
-            staleTime: 5 * 60 * 1000, // 5 minutes for detail data
-        }
-    );
+    return useQuery<SingleCommunityResponse>({
+        queryKey: ['communities', id],
+        queryFn: () => api.get<SingleCommunityResponse>(`/communities/${id}`),
+        enabled: !!id,
+        staleTime: 5 * 60 * 1000,
+    });
 }
 
-// CREATE user
+// CREATE community
 export function useCreateCommunity() {
-    return usePost<User>('/users', {
+    const queryClient = useQueryClient();
+    return useMutation<SingleCommunityResponse, Error, any>({
+        mutationFn: (data: any) => {
+            console.log('useCreateCommunity data:', data);
+
+            // Check if any value is a File or Blob
+            const hasFile = Object.values(data).some(
+                (val) => val instanceof File || val instanceof Blob
+            );
+
+            console.log('Has file for upload:', hasFile);
+
+            if (hasFile) {
+                const formData = new FormData();
+                Object.keys(data).forEach((key) => {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        formData.append(key, data[key]);
+                    }
+                });
+
+                // Debug log FormData entries
+                for (const pair of (formData as any).entries()) {
+                    console.log(`FormData: ${pair[0]} =`, pair[1]);
+                }
+
+                return api.post<SingleCommunityResponse>('/communities', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+            }
+
+            return api.post<SingleCommunityResponse>('/communities', data);
+        },
         onSuccess: () => {
-            console.log('User created successfully');
+            queryClient.invalidateQueries({ queryKey: ['communities'] });
         },
     });
 }
 
-// UPDATE user
+// UPDATE community
 export function useUpdateCommunity(id: string) {
-    return usePut<User>(`/users/${id}`, {
+    const queryClient = useQueryClient();
+    return useMutation<SingleCommunityResponse, Error, any>({
+        mutationFn: (data: any) => {
+            console.log('useUpdateCommunity data:', data);
+
+            const hasFile = Object.values(data).some(
+                (val) => val instanceof File || val instanceof Blob
+            );
+
+            if (hasFile) {
+                const formData = new FormData();
+                Object.keys(data).forEach((key) => {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        formData.append(key, data[key]);
+                    }
+                });
+
+                return api.put<SingleCommunityResponse>(`/communities/${id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+            }
+
+            return api.put<SingleCommunityResponse>(`/communities/${id}`, data);
+        },
         onSuccess: () => {
-            console.log('User updated successfully');
+            queryClient.invalidateQueries({ queryKey: ['communities'] });
         },
     });
 }
 
-// DELETE user
+// DELETE community
 export function useDeleteCommunity(id: string) {
-    return useDelete(`/users/${id}`, {
+    const queryClient = useQueryClient();
+    return useDelete(`/communities/${id}`, {
         onSuccess: () => {
-            console.log('User deleted successfully');
+            queryClient.invalidateQueries({ queryKey: ['communities'] });
         },
     });
 }

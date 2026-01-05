@@ -1,29 +1,31 @@
 // src/dto/user-row.dto.ts
-export type CommunitiesRowDTO = {
+export type CommunitiesMembersRowDTO = {
     id: number;
-    Community_Name: string;
-    members: string;
-    visibility: string;
+    name: string;
+    role: string;
+    posts: string;
+    last_seen: string;
     status: "Active" | "Inactive";
     joinedDate: string;
 };
-
 // src/api/types/user.api.ts
-export type CommunitiesApi = {
+export type CommunitiesMembersApi = {
     id: number;
-    community_Name: string;
-    Members: string;
-    Visibility: string;
+    name: string;
+    role: string
+    posts: string;
+    last_seen: string;
     is_active: boolean;
     joined_at: string; // ISO date
 };
 
-export function mapCommunityToRowDTO(user: CommunitiesApi): CommunitiesRowDTO {
+export function mapCommunityMembersToRowDTO(user: CommunitiesMembersApi): CommunitiesMembersRowDTO {
     return {
         id: user.id,
-        Community_Name: user.community_Name,
-        members: user.Members,
-        visibility: user.Visibility,
+        name: user.name,
+        role: user.role,
+        posts: user.posts,
+        last_seen: user.last_seen,
         status: user.is_active ? "Active" : "Inactive",
         joinedDate: new Date(user.joined_at).toLocaleDateString("en-US", {
             month: "short",

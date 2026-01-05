@@ -8,17 +8,129 @@ import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
 import { SelectComponent } from "@/components/select/selectComponent";
-import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
+import { COMMUNITY_TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
 import { ActionType } from "@/constants/actions";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
-import { useUsers } from "@/features/users/hooks/useUsers";
-import { mapUserToRowDTO, type CommunitiesRowDTO } from "@/features/communities/types/community.types";
-import type { UserRowDTO } from "@/features/users/types/user.types";
+import { mapCommunityToRowDTO, type CommunitiesRowDTO } from "@/features/communities/types/community.types";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useCommunities, useCreateCommunity, useUpdateCommunity } from "@/features/communities";
+import FileUpload from "@/components/fileUpload/upload";
+import { toast } from "react-hot-toast";
+
+interface CommunityFormProps {
+    initialData?: any;
+    close: () => void;
+    onSubmit: (data: any) => void;
+    isPending: boolean;
+    title: string;
+}
+
+function CommunityForm({ initialData, close, onSubmit, isPending, title }: CommunityFormProps) {
+    const [name, setName] = useState(initialData?.Community_Name || "");
+    const [description, setDescription] = useState(initialData?.description || "");
+    const [category, setCategory] = useState(initialData?.category || "");
+    const [visibility, setVisibility] = useState(initialData?.Visibility || initialData?.visibility || "Public");
+    const [owner, setOwner] = useState(initialData?.owner || "");
+    const [image, setImage] = useState<File | null>(null);
+
+    const handleSubmit = () => {
+        if (!name.trim()) {
+            toast.error("Community name is required");
+            return;
+        }
+        onSubmit({
+            community_Name: name,
+            description,
+            category,
+            Visibility: visibility,
+            owner,
+            image: image,
+        });
+    };
+
+    return (
+        <div className="flex h-full flex-col bg-white">
+            <div className="shrink-0 border-b border-[#E8E8E8] px-6 py-5 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">{title}</h2>
+                <button onClick={close} className="cursor-pointer">
+                    <img src={AppIcons.x} alt="Close" />
+                </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+                <div>
+                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Community Name</label>
+                    <FormInput
+                        placeholder="Enter name"
+                        type={INPUT_TYPES.TEXT}
+                        value={name}
+                        onChange={setName}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Description</label>
+                    <FormInput
+                        placeholder="Enter description"
+                        type={INPUT_TYPES.TEXTAREA}
+                        value={description}
+                        onChange={setDescription}
+                    />
+                </div>
+
+                <div>
+                    <label className="text-[13px] font-medium text-gray-700 mb-2">Category</label>
+                    <SelectComponent
+                        data={['Technology', 'Business', 'Lifestyle', 'Education']}
+                        placeholder="Select"
+                        value={category}
+                        onChange={(val) => setCategory(val as string)}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Image</label>
+                    <FileUpload onFileSelect={setImage} />
+                </div>
+
+                <div>
+                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Visibility</label>
+                    <SelectComponent
+                        data={['Public', 'Private']}
+                        placeholder="Select Visibility"
+                        value={visibility}
+                        onChange={(val) => setVisibility(val as string)}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Owner Assignment</label>
+                    <p className="text-[13px] text-[#969696] mb-2">Select a user to own and manage this community.</p>
+                    <SelectComponent
+                        data={['User 1', 'User 2', 'User 3']}
+                        placeholder="Select User"
+                        value={owner}
+                        onChange={(val) => setOwner(val as string)}
+                    />
+                </div>
+            </div>
+
+            <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">
+                <div className="flex gap-3">
+                    <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>Cancel</Button>
+                    <Button onClick={handleSubmit} loading={isPending}>
+                        {initialData ? "Update Community" : "Create Community"}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 
 export default function Communities() {
     const navigate = useNavigate();
@@ -35,7 +147,7 @@ export default function Communities() {
     const PAGE_SIZE = 10;
 
 
-    const { data, isLoading, isError, error } = useUsers(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useCommunities(page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
     useEffect(() => {
@@ -45,33 +157,35 @@ export default function Communities() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: UserRowDTO[] = data?.data.map(mapUserToRowDTO) ?? [];
+    const rows: CommunitiesRowDTO[] = data?.payload?.data?.map(mapCommunityToRowDTO) ?? [];
 
-    const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
+    const totalPages = (data?.payload && typeof data.payload.total === 'number')
+        ? Math.ceil(data.payload.total / PAGE_SIZE)
+        : 1;
 
     /* ----------------------------
        COLUMNS
     ---------------------------- */
     const columns: TableColumn<CommunitiesRowDTO>[] = [
         {
-            key: TABLE_VARIANTE.NAME,
-            header: TABLE_VARIANTE.NAME_HEADER,
+            key: COMMUNITY_TABLE_VARIANTE.NAME,
+            header: COMMUNITY_TABLE_VARIANTE.NAME_HEADER,
         },
         {
-            key: TABLE_VARIANTE.EMAIL,
-            header: TABLE_VARIANTE.EMAIL_HEADER,
+            key: COMMUNITY_TABLE_VARIANTE.MEMBERS,
+            header: COMMUNITY_TABLE_VARIANTE.MEMBERS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.COMMUNITIES,
-            header: TABLE_VARIANTE.COMMUNITIES_HEADER,
+            key: COMMUNITY_TABLE_VARIANTE.VISIBILITY,
+            header: COMMUNITY_TABLE_VARIANTE.VISIVILITY_HEADER,
         },
         {
-            key: TABLE_VARIANTE.STATUS,
-            header: TABLE_VARIANTE.STATUS_HEADER,
+            key: COMMUNITY_TABLE_VARIANTE.STATUS,
+            header: COMMUNITY_TABLE_VARIANTE.STATUS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.JOINED_DATE,
-            header: TABLE_VARIANTE.JOINED_DATE_HEADER,
+            key: COMMUNITY_TABLE_VARIANTE.JOINED_DATE,
+            header: COMMUNITY_TABLE_VARIANTE.JOINED_DATE_HEADER,
         },
     ];
     const suspendCommunityFn = () => {
@@ -100,228 +214,56 @@ export default function Communities() {
     /* ----------------------------
        ACTIONS
     ---------------------------- */
+    const { mutate: createCommunity, isPending: isCreating } = useCreateCommunity();
+
     const openCreateComunityModal = () => {
         openModal(
             ({ close }) => (
-                <div className="flex h-full flex-col bg-white">
-                    {/* HEADER (FIXED) */}
-                    <div className="shrink-0 border-b border-[#E8E8E8] px-6 py-5 flex items-center justify-between">
-                        <h2 className="text-2xl font-bold">
-                            Create Community
-                        </h2>
-                        <button onClick={close} className="cursor-pointer">
-                            <img src={Appicon.x} alt="Close" />
-                        </button>
-                    </div>
-
-                    {/* SCROLLABLE CONTENT */}
-                    <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Community Name
-                            </label>
-                            <FormInput placeholder="Enter name" type={INPUT_TYPES.TEXT} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Description
-                            </label>
-                            <FormInput placeholder="Enter description" type={INPUT_TYPES.TEXTAREA} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Category
-                            </label>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Image
-                            </label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                                <svg
-                                    className="mx-auto h-12 w-12 text-gray-400 mb-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
-                                <p className="text-sm text-gray-600">
-                                    Attach photo or take a picture
-                                </p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                    jpg, jpeg, png • up to 2mb
-                                </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Visibility
-                            </label>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select Visibility" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Owner Assignment
-                            </label>
-                            <p className="text-sm text-gray-500 mb-2">
-                                Select a user to own and manage this community.
-                            </p>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select User" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Add Moderators
-                            </label>
-                            <p className="text-sm text-gray-500 mb-2">
-                                Choose one or more Moderators
-                            </p>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select Moderator" />
-                        </div>
-                    </div>
-
-                    {/* FOOTER (FIXED) */}
-                    <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">
-                        <div className="flex gap-3">
-                            <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    alert("Community created!");
-                                    close();
-                                }}
-                            >
-                                Create community
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
+                <CommunityForm
+                    title="Create Community"
+                    close={close}
+                    isPending={isCreating}
+                    onSubmit={(data) => {
+                        createCommunity(data, {
+                            onSuccess: () => {
+                                toast.success("Community created successfully!");
+                                close();
+                            },
+                            onError: (err) => {
+                                toast.error("Failed to create community");
+                                console.error(err);
+                            }
+                        });
+                    }}
+                />
             ), { type: 'side', width: 'w-[500px]' })
     }
     const openEditComunityModal = (EditData: any) => {
-        console.log(EditData)
         openModal(
-            ({ close }) => (
-                <div className="flex h-full flex-col bg-white">
-                    {/* HEADER (FIXED) */}
-                    <div className="shrink-0 border-b border-[#E8E8E8] px-6 py-5 flex items-center justify-between">
-                        <h2 className="text-2xl font-bold">
-                            Create Community
-                        </h2>
-                        <button onClick={close} className="cursor-pointer">
-                            <img src={Appicon.x} alt="Close" />
-                        </button>
-                    </div>
+            ({ close }) => {
+                const { mutate: updateCommunity, isPending: isUpdating } = useUpdateCommunity(EditData.id);
 
-                    {/* SCROLLABLE CONTENT */}
-                    <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Community Name
-                            </label>
-                            <FormInput placeholder="Enter name" type={INPUT_TYPES.TEXT} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Description
-                            </label>
-                            <FormInput placeholder="Enter description" type={INPUT_TYPES.TEXTAREA} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Category
-                            </label>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Image
-                            </label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                                <svg
-                                    className="mx-auto h-12 w-12 text-gray-400 mb-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
-                                <p className="text-sm text-gray-600">
-                                    Attach photo or take a picture
-                                </p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                    jpg, jpeg, png • up to 2mb
-                                </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Visibility
-                            </label>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select Visibility" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Owner Assignment
-                            </label>
-                            <p className="text-sm text-gray-500 mb-2">
-                                Select a user to own and manage this community.
-                            </p>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select User" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Add Moderators
-                            </label>
-                            <p className="text-sm text-gray-500 mb-2">
-                                Choose one or more Moderators
-                            </p>
-                            <SelectComponent data={['option1', 'option2']} placeholder="Select Moderator" />
-                        </div>
-                    </div>
-
-                    {/* FOOTER (FIXED) */}
-                    <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">
-                        <div className="flex gap-3">
-                            <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    alert("Community created!");
+                return (
+                    <CommunityForm
+                        title="Edit Community"
+                        initialData={EditData}
+                        close={close}
+                        isPending={isUpdating}
+                        onSubmit={(data) => {
+                            updateCommunity(data, {
+                                onSuccess: () => {
+                                    toast.success("Community updated successfully!");
                                     close();
-                                }}
-                            >
-                                Create community
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-            ), { type: 'side', width: 'w-[500px]' })
+                                },
+                                onError: (err) => {
+                                    toast.error("Failed to update community");
+                                    console.error(err);
+                                }
+                            });
+                        }}
+                    />
+                );
+            }, { type: 'side', width: 'w-[500px]' })
     }
     const actions: TableAction<CommunitiesRowDTO>[] = [
         {
@@ -343,7 +285,7 @@ export default function Communities() {
             label: ActionType.SUSPEND_COMMUNITY,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => suspendCommunityFn(),
+            onClick: (_row) => suspendCommunityFn(),
         },
     ];
 

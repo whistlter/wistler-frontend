@@ -1,19 +1,18 @@
 import { BUTTON_TYPE } from "@/components/button/constants";
-import { FilterDropdown } from "@/components/filter/FilterDropdown";
 import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
-import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
+import { COMMUNITY_MEMBERS_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
 import { ActionType } from "@/constants/actions";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
-import { useUsers } from "@/features/users/hooks/useUsers";
-import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { mapCommunityMembersToRowDTO, type CommunitiesMembersRowDTO } from "@/features/communities/types/communityMember.types";
+import { useCommunitiesMembers } from "@/features/communities/hooks/useCommunityMembers";
 
 export function CommunityMembers() {
     const navigate = useNavigate();
@@ -31,7 +30,7 @@ export function CommunityMembers() {
     const PAGE_SIZE = 10;
 
 
-    const { data, isLoading, isError, error } = useUsers(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useCommunitiesMembers(page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
     useEffect(() => {
@@ -41,33 +40,37 @@ export function CommunityMembers() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: UserRowDTO[] = data?.data.map(mapUserToRowDTO) ?? [];
+    const rows: CommunitiesMembersRowDTO[] = data?.data.map(mapCommunityMembersToRowDTO) ?? [];
 
     const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
 
     /* ----------------------------
        COLUMNS
     ---------------------------- */
-    const columns: TableColumn<UserRowDTO>[] = [
+    const columns: TableColumn<CommunitiesMembersRowDTO>[] = [
         {
-            key: TABLE_VARIANTE.NAME,
-            header: TABLE_VARIANTE.NAME_HEADER,
+            key: COMMUNITY_MEMBERS_VARIANTE.NAME,
+            header: COMMUNITY_MEMBERS_VARIANTE.NAME_HEADER,
         },
         {
-            key: TABLE_VARIANTE.EMAIL,
-            header: TABLE_VARIANTE.EMAIL_HEADER,
+            key: COMMUNITY_MEMBERS_VARIANTE.ROLE,
+            header: COMMUNITY_MEMBERS_VARIANTE.ROLE_HEADER,
         },
         {
-            key: TABLE_VARIANTE.COMMUNITIES,
-            header: TABLE_VARIANTE.COMMUNITIES_HEADER,
+            key: COMMUNITY_MEMBERS_VARIANTE.POSTS,
+            header: COMMUNITY_MEMBERS_VARIANTE.POST_HEADER,
         },
         {
-            key: TABLE_VARIANTE.STATUS,
-            header: TABLE_VARIANTE.STATUS_HEADER,
+            key: COMMUNITY_MEMBERS_VARIANTE.LAST_SEEN,
+            header: COMMUNITY_MEMBERS_VARIANTE.LAST_SEEN_HEADER,
         },
         {
-            key: TABLE_VARIANTE.JOINED_DATE,
-            header: TABLE_VARIANTE.JOINED_DATE_HEADER,
+            key: COMMUNITY_MEMBERS_VARIANTE.STATUS,
+            header: COMMUNITY_MEMBERS_VARIANTE.STATUS_HEADER,
+        },
+        {
+            key: COMMUNITY_MEMBERS_VARIANTE.JOINED_DATE,
+            header: COMMUNITY_MEMBERS_VARIANTE.JOINED_DATE_HEADER,
         },
     ];
 
@@ -116,7 +119,7 @@ export function CommunityMembers() {
             />
         ));
     }
-    const actions: TableAction<UserRowDTO>[] = [
+    const actions: TableAction<CommunitiesMembersRowDTO>[] = [
         {
             label: ActionType.VIEW_PROFILE,
             icon: Appicon.eyeOpen,

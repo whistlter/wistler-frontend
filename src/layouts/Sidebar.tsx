@@ -86,8 +86,8 @@ const Sidebar = () => {
                         </span>
                     </div>
                 </div>
-                <h2 className="text-white font-medium text-[15px] mb-0.5">
-                    {user?.name || 'Guest User'}
+                <h2 className="text-white font-medium text-[15px] mb-0.5 capitalize">
+                    {(user?.first_name + ' ' + user?.last_name) || 'Guest User'}
                 </h2>
                 <p className="text-center text-[11px] font-semibold text-[#666]">
                     {user?.email || 'No email'}

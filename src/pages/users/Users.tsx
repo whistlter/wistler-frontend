@@ -1,25 +1,25 @@
 import { Pagination } from "@/components/pagination/Pagination";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
-import { useUsers } from "@/features/users/hooks/useUsers";
+import { useBlockUser, useUsers } from "@/features/users/hooks/useUsers";
 import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
-import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
+import { USER_TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { FilterDropdown } from "@/components/filter/FilterDropdown";
 import type { FilterOption } from "@/components/filter/types";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ActionModal } from "@/components/modal/actionModal";
 import { useModal } from "@/components/modal";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { ActionType } from "@/constants/actions";
 
 export default function Users() {
-    const { openModal, } = useModal();
-
+    const { openModal } = useModal();
     const navigate = useNavigate();
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
+    const { mutateAsync: blockUser } = useBlockUser();
 
     useEffect(() => {
         setPlaceholder('Search users by name or email...');
@@ -29,7 +29,6 @@ export default function Users() {
     const Appicon = { ...AppIcons }
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 10;
-
 
     const { data, isLoading, isError, error } = useUsers(page, PAGE_SIZE, searchTerm);
 
@@ -41,37 +40,36 @@ export default function Users() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: UserRowDTO[] = data?.data.map(mapUserToRowDTO) ?? [];
-
-    const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
+    const rows: UserRowDTO[] = data?.payload?.users?.map(mapUserToRowDTO) ?? [];
+    const totalPages = data?.payload?.meta?.totalPages ?? 1;
 
     /* ----------------------------
        COLUMNS
     ---------------------------- */
     const columns: TableColumn<UserRowDTO>[] = [
         {
-            key: TABLE_VARIANTE.NAME,
-            header: TABLE_VARIANTE.NAME_HEADER,
+            key: USER_TABLE_VARIANTE.NAME,
+            header: USER_TABLE_VARIANTE.NAME_HEADER,
         },
         {
-            key: TABLE_VARIANTE.EMAIL,
-            header: TABLE_VARIANTE.EMAIL_HEADER,
+            key: USER_TABLE_VARIANTE.EMAIL,
+            header: USER_TABLE_VARIANTE.EMAIL_HEADER,
         },
         {
-            key: TABLE_VARIANTE.COMMUNITIES,
-            header: TABLE_VARIANTE.COMMUNITIES_HEADER,
+            key: USER_TABLE_VARIANTE.COMMUNITIES,
+            header: USER_TABLE_VARIANTE.COMMUNITIES_HEADER,
         },
         {
-            key: TABLE_VARIANTE.STATUS,
-            header: TABLE_VARIANTE.STATUS_HEADER,
+            key: USER_TABLE_VARIANTE.STATUS,
+            header: USER_TABLE_VARIANTE.STATUS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.JOINED_DATE,
-            header: TABLE_VARIANTE.JOINED_DATE_HEADER,
+            key: USER_TABLE_VARIANTE.JOINED_DATE,
+            header: USER_TABLE_VARIANTE.JOINED_DATE_HEADER,
         },
     ];
 
-    function suspendUserFn() {
+    function suspendUserFn(userId: number) {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
@@ -81,13 +79,13 @@ export default function Users() {
                 }}
                 title="Suspend user"
                 description="This will temporarily block the user from accessing their account. They will not be able to sign in until reinstated."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.SUSPEND_USER}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    await blockUser(userId);
+                    close();
                 }}
             />
         ));
@@ -106,7 +104,7 @@ export default function Users() {
             label: ActionType.SUSPEND_USER,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => suspendUserFn(),
+            onClick: (row) => suspendUserFn(row.id),
         },
     ];
 
@@ -159,7 +157,6 @@ export default function Users() {
                     </div>
                 </div>
 
-
                 <div className="w-full h-full">
                     <Table
                         data={rows}
@@ -175,7 +172,6 @@ export default function Users() {
                         />
                     </div>
                 </div>
-
             </div>
         </>
     );

@@ -8,15 +8,15 @@ import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
 import { SelectComponent } from "@/components/select/selectComponent";
-import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
+import { COMMUNITY_POST_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
 import { ActionType } from "@/constants/actions";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
-import { useUsers } from "@/features/users/hooks/useUsers";
-import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
+import { mapCommunityPostToRowDTO, type CommunitiesPostRowDTO } from "@/features/communities/types/communityPost.types";
+import { useCommunitiesPost } from "@/features/communities/hooks/useCommunityPost";
 
 export function CommunityPosts() {
     const { openModal, } = useModal();
@@ -32,7 +32,7 @@ export function CommunityPosts() {
     const PAGE_SIZE = 10;
 
 
-    const { data, isLoading, isError, error } = useUsers(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useCommunitiesPost(page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
     useEffect(() => {
@@ -42,33 +42,33 @@ export function CommunityPosts() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: UserRowDTO[] = data?.data.map(mapUserToRowDTO) ?? [];
+    const rows: CommunitiesPostRowDTO[] = data?.data.map(mapCommunityPostToRowDTO) ?? [];
 
     const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
 
     /* ----------------------------
        COLUMNS
     ---------------------------- */
-    const columns: TableColumn<UserRowDTO>[] = [
+    const columns: TableColumn<CommunitiesPostRowDTO>[] = [
         {
-            key: TABLE_VARIANTE.NAME,
-            header: TABLE_VARIANTE.NAME_HEADER,
+            key: COMMUNITY_POST_VARIANTE.CAPTION,
+            header: COMMUNITY_POST_VARIANTE.CAPTION_HEADER,
         },
         {
-            key: TABLE_VARIANTE.EMAIL,
-            header: TABLE_VARIANTE.EMAIL_HEADER,
+            key: COMMUNITY_POST_VARIANTE.AUTHOR,
+            header: COMMUNITY_POST_VARIANTE.AUTHOR_HEADER,
         },
         {
-            key: TABLE_VARIANTE.COMMUNITIES,
-            header: TABLE_VARIANTE.COMMUNITIES_HEADER,
+            key: COMMUNITY_POST_VARIANTE.FLAGS,
+            header: COMMUNITY_POST_VARIANTE.FLAGS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.STATUS,
-            header: TABLE_VARIANTE.STATUS_HEADER,
+            key: COMMUNITY_POST_VARIANTE.STATUS,
+            header: COMMUNITY_POST_VARIANTE.STATUS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.JOINED_DATE,
-            header: TABLE_VARIANTE.JOINED_DATE_HEADER,
+            key: COMMUNITY_POST_VARIANTE.POSTED_ON,
+            header: COMMUNITY_POST_VARIANTE.POSTED_ON_HEADER,
         },
     ];
 
@@ -221,7 +221,7 @@ export function CommunityPosts() {
     }
 
 
-    const actions: TableAction<UserRowDTO>[] = [
+    const actions: TableAction<CommunitiesPostRowDTO>[] = [
         {
             label: ActionType.VIEW_POST,
             icon: Appicon.eyeOpen,

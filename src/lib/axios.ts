@@ -13,7 +13,7 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 // Request interceptor
@@ -40,7 +40,8 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+        // Use axiosInstance or fix the URL to avoid double slash if API_BASE_URL has a trailing slash
+        const response = await axios.post(`${API_BASE_URL}auth/refresh`, { refreshToken });
 
         const { accessToken } = response.data;
         localStorage.setItem('authToken', accessToken);

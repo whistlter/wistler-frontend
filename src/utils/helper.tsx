@@ -97,6 +97,10 @@ export function statusToColor(status: string) {
             return "w-[6px] h-[6px] rounded-[1px] bg-[#FF9A54]";
         case GeneralEnum.PUBLISHED:
             return "w-[6px] h-[6px] rounded-[1px] bg-[#2873FF]";
+        case GeneralEnum.BLOCKED:
+            return "w-[6px] h-[6px] rounded-[1px] bg-[#FF2860]";
+        case GeneralEnum.ACCEPTED:
+            return "w-[6px] h-[6px] rounded-[1px] bg-[#57A523]";
         default:
             return "w-[6px] h-[6px] rounded-[1px] bg-[#969696]";
     }

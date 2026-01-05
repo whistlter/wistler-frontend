@@ -1,17 +1,16 @@
 import { BUTTON_TYPE } from "@/components/button/constants";
-import { FilterDropdown } from "@/components/filter/FilterDropdown";
 import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
-import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
+import { FLAGGED_CONTENT_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
 import { ActionType } from "@/constants/actions";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
-import { useUsers } from "@/features/users/hooks/useUsers";
-import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
+import { useFlaggedContent } from "@/features/moderation/hooks/useModerator";
+import { mapFlaggedContentToRowDTO, type FlaggedContentRowDTO } from "@/features/moderation/types/moderation.types";
 import { useEffect, useState } from "react";
 
 export function FlaggedTab() {
@@ -19,7 +18,7 @@ export function FlaggedTab() {
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
-        setPlaceholder('Search Flagged Content by name or email...');
+        setPlaceholder('Search Flagged Content by content, community or reason...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
@@ -28,7 +27,7 @@ export function FlaggedTab() {
     const PAGE_SIZE = 10;
 
 
-    const { data, isLoading, isError, error } = useUsers(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useFlaggedContent(page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
     useEffect(() => {
@@ -38,33 +37,29 @@ export function FlaggedTab() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: UserRowDTO[] = data?.data.map(mapUserToRowDTO) ?? [];
+    const rows: FlaggedContentRowDTO[] = data?.data.map(mapFlaggedContentToRowDTO) ?? [];
 
     const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
 
     /* ----------------------------
        COLUMNS
     ---------------------------- */
-    const columns: TableColumn<UserRowDTO>[] = [
+    const columns: TableColumn<FlaggedContentRowDTO>[] = [
         {
-            key: TABLE_VARIANTE.NAME,
-            header: TABLE_VARIANTE.NAME_HEADER,
+            key: FLAGGED_CONTENT_VARIANTE.CONTENT_PREVIEW,
+            header: FLAGGED_CONTENT_VARIANTE.CONTENT_PREVIEW_HEADER,
         },
         {
-            key: TABLE_VARIANTE.EMAIL,
-            header: TABLE_VARIANTE.EMAIL_HEADER,
+            key: FLAGGED_CONTENT_VARIANTE.REASON,
+            header: FLAGGED_CONTENT_VARIANTE.REASON_HEADER,
         },
         {
-            key: TABLE_VARIANTE.COMMUNITIES,
-            header: TABLE_VARIANTE.COMMUNITIES_HEADER,
+            key: FLAGGED_CONTENT_VARIANTE.FLAGS,
+            header: FLAGGED_CONTENT_VARIANTE.FLAGS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.STATUS,
-            header: TABLE_VARIANTE.STATUS_HEADER,
-        },
-        {
-            key: TABLE_VARIANTE.JOINED_DATE,
-            header: TABLE_VARIANTE.JOINED_DATE_HEADER,
+            key: FLAGGED_CONTENT_VARIANTE.COMMUNITY,
+            header: FLAGGED_CONTENT_VARIANTE.COMMUNITY_HEADER,
         },
     ];
 
@@ -81,7 +76,6 @@ export function FlaggedTab() {
                 }}
                 title="Take down content"
                 description="This removes the content from public view. The creator will not be notified automatically."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.TAKE_DOWN}
                 primaryIntent="danger"
                 showLoader
@@ -102,7 +96,6 @@ export function FlaggedTab() {
                 }}
                 title="Take down content"
                 description="This hides the content and places it into the review queue for further investigation."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.MOVE_TO_REVIEW}
                 primaryIntent="danger"
                 showLoader
@@ -123,7 +116,6 @@ export function FlaggedTab() {
                 }}
                 title="Ban user"
                 description="Permanently blocks this user from the platform."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.BAN_USER}
                 primaryIntent="danger"
                 showLoader
@@ -144,7 +136,6 @@ export function FlaggedTab() {
                 }}
                 title="Shadowban User"
                 description="The user can still post, but nobody else will see their content."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.SHADOW_BAN}
                 primaryIntent="danger"
                 showLoader
@@ -165,7 +156,6 @@ export function FlaggedTab() {
                 }}
                 title="Suspend user"
                 description="Temporarily disables account access."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.SUSPEND_USER}
                 primaryIntent="danger"
                 showLoader
@@ -177,7 +167,7 @@ export function FlaggedTab() {
         ));
     }
 
-    const actions: TableAction<UserRowDTO>[] = [
+    const actions: TableAction<FlaggedContentRowDTO>[] = [
         {
             label: ActionType.TAKE_DOWN,
             icon: Appicon.achiveArrowDown,
@@ -212,24 +202,14 @@ export function FlaggedTab() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load users"}
+                {(error as any)?.message ?? "Failed to load flagged content"}
             </div>
         );
     }
     const filterOptions: FilterOption[] = [
         {
-            label: "Date",
-            value: "date",
-            icon: <span>📅</span>,
-        },
-        {
-            label: "Status",
-            value: "status",
-            icon: <span>⚡</span>,
-        },
-        {
-            label: "Role",
-            value: "role",
+            label: "Reason",
+            value: "reason",
             icon: <span>👤</span>,
         },
     ];

@@ -7,6 +7,16 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+  returnUrl: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+}
+
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -18,9 +28,17 @@ export interface LoginResponse {
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
-  return api.post<LoginResponse>("/auth/login", payload);
+  return api.post<LoginResponse>("login", payload);
 }
 
 export async function logout(): Promise<void> {
-  return api.post("/auth/logout");
+  return api.post("logout");
+}
+
+export async function forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+  return api.post("forget-password/check-email", payload);
+}
+
+export async function resetPassword(payload: ResetPasswordPayload): Promise<void> {
+  return api.post("forget-password/change-password", payload);
 }

@@ -14,16 +14,21 @@ export function usePagination({
   currentPage,
   siblingCount = 1,
 }: UsePaginationProps): PaginationItem[] {
+  // Guard against NaN or invalid totalPages
+  if (isNaN(totalPages) || totalPages <= 0) {
+    return [];
+  }
+
   // If total pages can fit without dots, show all pages
   const totalPageNumbers = siblingCount * 2 + 5; // first + left siblings + current + right siblings + last
-  
+
   if (totalPageNumbers >= totalPages) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
   const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
   const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-  
+
   const shouldShowLeftDots = leftSiblingIndex > 2;
   const shouldShowRightDots = rightSiblingIndex < totalPages - 1;
 

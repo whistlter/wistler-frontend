@@ -1,27 +1,26 @@
 import { BUTTON_TYPE } from "@/components/button/constants";
-import { FilterDropdown } from "@/components/filter/FilterDropdown";
-import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
-import { TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
+import { USER_TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
-import { useUsers } from "@/features/users/hooks/useUsers";
-import { mapUserToRowDTO, type UserRowDTO } from "@/features/users/types/user.types";
+import { useUserCommunities } from "@/features/users/hooks/useUsers";
+import { mapUserCommunityToRowDTO, type UserCommunityRowDTO } from "@/features/users/types/user.types";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export function UsercommunityTap() {
     const navigate = useNavigate();
+    const { id: userId } = useParams<{ id: string }>();
 
     const { openModal, } = useModal();
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
-        setPlaceholder('Search Review Queue by Name or Email...');
+        setPlaceholder('Search communities by name...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
@@ -30,7 +29,7 @@ export function UsercommunityTap() {
     const PAGE_SIZE = 10;
 
 
-    const { data, isLoading, isError, error } = useUsers(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useUserCommunities(userId || '', page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
     useEffect(() => {
@@ -40,33 +39,29 @@ export function UsercommunityTap() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: UserRowDTO[] = data?.data.map(mapUserToRowDTO) ?? [];
+    const rows: UserCommunityRowDTO[] = data?.payload?.userCommunitys?.map(mapUserCommunityToRowDTO) ?? [];
 
-    const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
+    const totalPages = data?.payload?.meta?.totalPages ?? 1;
 
     /* ----------------------------
        COLUMNS
     ---------------------------- */
-    const columns: TableColumn<UserRowDTO>[] = [
+    const columns: TableColumn<UserCommunityRowDTO>[] = [
         {
-            key: TABLE_VARIANTE.NAME,
-            header: TABLE_VARIANTE.NAME_HEADER,
+            key: USER_TABLE_VARIANTE.NAME,
+            header: USER_TABLE_VARIANTE.NAME_HEADER,
         },
         {
-            key: TABLE_VARIANTE.EMAIL,
-            header: TABLE_VARIANTE.EMAIL_HEADER,
+            key: USER_TABLE_VARIANTE.ROLE,
+            header: USER_TABLE_VARIANTE.ROLE_HEADER,
         },
         {
-            key: TABLE_VARIANTE.COMMUNITIES,
-            header: TABLE_VARIANTE.COMMUNITIES_HEADER,
+            key: USER_TABLE_VARIANTE.STATUS,
+            header: USER_TABLE_VARIANTE.STATUS_HEADER,
         },
         {
-            key: TABLE_VARIANTE.STATUS,
-            header: TABLE_VARIANTE.STATUS_HEADER,
-        },
-        {
-            key: TABLE_VARIANTE.JOINED_DATE,
-            header: TABLE_VARIANTE.JOINED_DATE_HEADER,
+            key: USER_TABLE_VARIANTE.JOINED_DATE,
+            header: USER_TABLE_VARIANTE.JOINED_DATE_HEADER,
         },
     ];
 
@@ -83,7 +78,6 @@ export function UsercommunityTap() {
                 }}
                 title="Remove user from community"
                 description="This user will lose access to this community and its content. They can rejoin later if needed."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel="Remove user"
                 primaryIntent="danger"
                 showLoader
@@ -104,7 +98,6 @@ export function UsercommunityTap() {
                 }}
                 title="Update user role"
                 description="Choose the new role for this user. Their permissions will update immediately."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel="Update role"
                 primaryIntent="danger"
                 showLoader
@@ -115,7 +108,7 @@ export function UsercommunityTap() {
             />
         ));
     }
-    const actions: TableAction<UserRowDTO>[] = [
+    const actions: TableAction<UserCommunityRowDTO>[] = [
         {
             label: "View Community",
             icon: Appicon.eyeOpen,
@@ -124,13 +117,13 @@ export function UsercommunityTap() {
         {
             label: "Change role",
             icon: Appicon.user,
-            onClick: (row) => changeUserRoleFn(),
+            onClick: (_row) => changeUserRoleFn(),
         },
         {
             label: "Remove user",
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => removeUserFn(),
+            onClick: (_row) => removeUserFn(),
         },
     ];
 
@@ -140,27 +133,11 @@ export function UsercommunityTap() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load users"}
+                {(error as any)?.message ?? "Failed to load communities"}
             </div>
         );
     }
-    const filterOptions: FilterOption[] = [
-        {
-            label: "Date",
-            value: "date",
-            icon: <span>📅</span>,
-        },
-        {
-            label: "Status",
-            value: "status",
-            icon: <span>⚡</span>,
-        },
-        {
-            label: "Role",
-            value: "role",
-            icon: <span>👤</span>,
-        },
-    ];
+
 
     /* ----------------------------
        RENDER
