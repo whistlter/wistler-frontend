@@ -36,9 +36,9 @@ export async function logout(): Promise<void> {
 }
 
 export async function forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
-  return api.post("forget-password/check-email", payload);
+  return api.post("admin/forget-password/check-email", payload);
 }
 
 export async function resetPassword(payload: ResetPasswordPayload): Promise<void> {
-  return api.post("forget-password/change-password", payload);
+  return api.post("admin/forget-password/change-password", payload);
 }
