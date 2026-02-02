@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({ modal, onClose }) => {
             onClick={handleOverlayClick}
         >
             <div
-                className={`bg-white rounded-lg shadow-xl w-full ${width} relative transform transition-all duration-600 ease-in-out max-h-[90vh] overflow-y-auto ${isClosing || !isAnimating ? 'translate-y-[100vh] opacity-0' : 'translate-y-0 opacity-100'
+                className={`bg-white rounded-2xl shadow-xl w-full ${width} relative transform transition-all duration-600 ease-in-out max-h-[90vh] overflow-y-auto ${isClosing || !isAnimating ? 'translate-y-[100vh] opacity-0' : 'translate-y-0 opacity-100'
                     }`}
             >
                 <div className="">

@@ -1,9 +1,45 @@
 @import "tailwindcss";
 @import "@fontsource/manrope/index.css";
+
 :root {
   --font-sans: "Manrope", system-ui, sans-serif;
   font-size: 13px;
 }
+
 body {
   font-family: var(--font-sans);
+}
+
+@layer utilities {
+  .animate-enter {
+    animation: enter 0.7s ease-in-out forwards;
+  }
+
+  .animate-leave {
+    animation: leave 0.7s ease-in-out forwards;
+  }
+
+  @keyframes enter {
+    0% {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes leave {
+    0% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
 }

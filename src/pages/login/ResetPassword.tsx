@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 import { logger } from "@/utils/logger";
 import { FormInput } from "@/components/inputs/FormInput";
 import { INPUT_TYPES } from "@/components/inputs/constants";
@@ -18,19 +18,19 @@ function ResetPassword() {
 
     useEffect(() => {
         if (!token) {
-            toast.error("Invalid or missing reset token");
+            showErrorToast("Invalid Request", "Invalid or missing reset token");
             navigate("/forgot-password");
         }
     }, [token, navigate]);
 
     const onSubmit = () => {
         if (!password) {
-            toast.error("Please enter a new password");
+            showErrorToast("Validation Error", "Please enter a new password");
             return;
         }
 
         if (password !== confirmPassword) {
-            toast.error("Passwords do not match");
+            showErrorToast("Validation Error", "Passwords do not match");
             return;
         }
 
@@ -44,12 +44,12 @@ function ResetPassword() {
             {
                 onSuccess: () => {
                     logger.info("Password reset successfully");
-                    toast.success("Password reset successful! You can now log in.");
+                    showSuccessToast("Password Reset", "Your password has been reset successfully! You can now log in.");
                     navigate("/login");
                 },
                 onError: (error) => {
                     logger.error("Password reset failed", error);
-                    toast.error("Failed to reset password. The link may have expired.");
+                    showErrorToast("Reset Failed", "Failed to reset password. The link may have expired.");
                 },
             }
         );

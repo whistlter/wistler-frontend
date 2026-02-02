@@ -2,15 +2,21 @@
 import { useGet, usePost, usePut, useDelete } from '@/hooks/useApi';
 import type { CommunitiesMembersApi } from '../types/communityMember.types';
 
-export interface PaginatedCommunityMembers {
-    data: CommunitiesMembersApi[];
-    total: number;
-    page: number;
-    pageSize: number;
+export interface PaginatedCommunityMembersResponse {
+    message: string;
+    payload: {
+        members: CommunitiesMembersApi[];
+        meta?: {
+            total: number;
+            page: number;
+            pageSize: number;
+        };
+    };
+    status: string;
 }
 
-// GET all members with pagination
-export function useCommunitiesMembers(page: number, pageSize: number = 10, searchTerm?: string) {
+// GET all members with pagination for a specific community
+export function useCommunitiesMembers(communityId: string, page: number, pageSize: number = 10, searchTerm?: string) {
     // Build query parameters
     const params = new URLSearchParams({
         page: page.toString(),
@@ -21,10 +27,11 @@ export function useCommunitiesMembers(page: number, pageSize: number = 10, searc
         params.append('search', searchTerm.trim());
     }
 
-    return useGet<PaginatedCommunityMembers>(
-        ['communities', 'members', page.toString(), pageSize.toString(), searchTerm || ''],
-        `/communities/members?${params.toString()}`,
+    return useGet<PaginatedCommunityMembersResponse>(
+        ['communities', communityId, 'members', page.toString(), pageSize.toString(), searchTerm || ''],
+        `admin/community/${communityId}/members?${params.toString()}`,
         {
+            enabled: !!communityId,
             staleTime: 2 * 60 * 1000,
         }
     );
@@ -34,7 +41,7 @@ export function useCommunitiesMembers(page: number, pageSize: number = 10, searc
 export function useCommunityMember(id: string) {
     return useGet<CommunitiesMembersApi>(
         ['communities', 'members', id],
-        `/communities/members/${id}`,
+        `admin/communities/members/${id}`,
         {
             enabled: !!id,
             staleTime: 5 * 60 * 1000,
@@ -44,7 +51,7 @@ export function useCommunityMember(id: string) {
 
 // CREATE member
 export function useCreateCommunityMember() {
-    return usePost<CommunitiesMembersApi>('/communities/members', {
+    return usePost<CommunitiesMembersApi>('admin/communities/members', {
         onSuccess: () => {
             console.log('Member created successfully');
         },
@@ -53,7 +60,7 @@ export function useCreateCommunityMember() {
 
 // UPDATE member
 export function useUpdateCommunityMember(id: string) {
-    return usePut<CommunitiesMembersApi>(`/communities/members/${id}`, {
+    return usePut<CommunitiesMembersApi>(`admin/communities/members/${id}`, {
         onSuccess: () => {
             console.log('Member updated successfully');
         },
@@ -62,7 +69,7 @@ export function useUpdateCommunityMember(id: string) {
 
 // DELETE member
 export function useDeleteCommunityMember(id: string) {
-    return useDelete(`/communities/members/${id}`, {
+    return useDelete(`admin/communities/members/${id}`, {
         onSuccess: () => {
             console.log('Member deleted successfully');
         },

@@ -32,9 +32,11 @@ export function UsercommunityTap() {
     const { data, isLoading, isError, error } = useUserCommunities(userId || '', page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
-    useEffect(() => {
+    const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+    if (prevSearchTerm !== searchTerm) {
+        setPrevSearchTerm(searchTerm);
         setPage(1);
-    }, [searchTerm]);
+    }
 
     /* ----------------------------
        ROWS
@@ -112,18 +114,18 @@ export function UsercommunityTap() {
         {
             label: "View Community",
             icon: Appicon.eyeOpen,
-            onClick: (row) => navigate(`/community/Details/${row.id}`),
+            onClick: (row) => navigate(`/users/${userId}/community/${row.id}`),
         },
         {
             label: "Change role",
             icon: Appicon.user,
-            onClick: (_row) => changeUserRoleFn(),
+            onClick: () => changeUserRoleFn(),
         },
         {
             label: "Remove user",
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (_row) => removeUserFn(),
+            onClick: () => removeUserFn(),
         },
     ];
 
@@ -133,7 +135,7 @@ export function UsercommunityTap() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load communities"}
+                {(error as Error)?.message ?? "Failed to load communities"}
             </div>
         );
     }

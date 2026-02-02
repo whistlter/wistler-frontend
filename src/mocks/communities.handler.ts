@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { COMMUNITIES_DB, COMMUNITY_MEMBERS_DB, COMMUNITY_POSTS_DB } from "./communities.db";
+import type { CommunitiesApi } from "@/features/communities/types/community.types";
 
 export const communitiesHandlers = [
     // Fetch all communities
@@ -16,7 +17,7 @@ export const communitiesHandlers = [
             if (search.trim()) {
                 const searchLower = search.toLowerCase();
                 filtered = COMMUNITIES_DB.filter((c) =>
-                    c.community_Name.toLowerCase().includes(searchLower)
+                    c.title.toLowerCase().includes(searchLower)
                 );
             }
 
@@ -57,14 +58,25 @@ export const communitiesHandlers = [
     http.post(
         "/v1/admin/communities",
         async ({ request }) => {
-            const body = await request.json() as any;
-            const newCommunity = {
+            const body = await request.json() as Record<string, unknown>;
+            const newCommunity: CommunitiesApi = {
                 id: COMMUNITIES_DB.length + 1,
-                community_Name: body.community_Name,
-                Members: "0",
-                Visibility: body.Visibility,
-                is_active: true,
-                joined_at: new Date().toISOString(),
+                user_id: body.user_id || 1,
+                code: `COMM${COMMUNITIES_DB.length + 1}`,
+                image: body.image || null,
+                title: body.title || body.community_Name,
+                desc: body.desc || "",
+                visibility: body.visibility || "public",
+                is_safe_space: false,
+                is_member_screening: false,
+                can_post_anonymously: true,
+                has_post_contents: false,
+                is_deleted: false,
+                is_suspended: false,
+                status: "active",
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                members_count: 0,
             };
             COMMUNITIES_DB.unshift(newCommunity);
             return HttpResponse.json(newCommunity, { status: 201 });
@@ -76,14 +88,15 @@ export const communitiesHandlers = [
         "/v1/admin/communities/:id",
         async ({ params, request }) => {
             const { id } = params;
-            const body = await request.json() as any;
+            const body = await request.json() as Record<string, unknown>;
             const index = COMMUNITIES_DB.findIndex((c) => c.id === Number(id));
 
             if (index !== -1) {
                 COMMUNITIES_DB[index] = {
                     ...COMMUNITIES_DB[index],
-                    community_Name: body.community_Name,
-                    Visibility: body.Visibility,
+                    title: body.title || body.community_Name,
+                    visibility: body.visibility || body.Visibility,
+                    updatedAt: new Date().toISOString(),
                 };
                 return HttpResponse.json(COMMUNITIES_DB[index], { status: 200 });
             }

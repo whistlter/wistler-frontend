@@ -7,9 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency directories
 node_modules
+.pnpm-store
+
+# Dist
 dist
 dist-ssr
+build
+
+# Local env files
+.env
+.env.local
+.env.*.local
 *.local
 
 # Editor directories and files
@@ -22,3 +32,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Testing
+coverage/
+cypress/videos
+cypress/screenshots
+
+# TypeScript
+*.tsbuildinfo
+
+# Prettier
+.prettiercache
+
+# ESLint
+.eslintcache
+
+# Production
+*.production

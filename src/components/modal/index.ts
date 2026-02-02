@@ -2,5 +2,8 @@ export * from './Modal';
 export * from './ModalContainer';
 export * from './ModalDemo';
 export * from './actionModal';
+export * from './DateRangeModal';
+export * from './StatusFilterModal';
+export * from './IndustryFilterModal';
 export * from '@/providers/ModalProvider';
 export * from '@/providers/modal.types';

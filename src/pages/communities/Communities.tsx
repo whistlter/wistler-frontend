@@ -5,7 +5,7 @@ import type { FilterOption } from "@/components/filter/types";
 import { INPUT_TYPES } from "@/components/inputs/constants";
 import { FormInput } from "@/components/inputs/FormInput";
 import { useModal } from "@/components/modal";
-import { ActionModal } from "@/components/modal/actionModal";
+import { ActionModal, DateRangeModal } from "@/components/modal";
 import { Pagination } from "@/components/pagination/Pagination";
 import { SelectComponent } from "@/components/select/selectComponent";
 import { COMMUNITY_TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
@@ -17,14 +17,23 @@ import { useSearchStore } from "@/stores/searchStore";
 import { mapCommunityToRowDTO, type CommunitiesRowDTO } from "@/features/communities/types/community.types";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCommunities, useCreateCommunity, useUpdateCommunity } from "@/features/communities";
+import { useCommunities, useCreateCommunity, useUpdateCommunity, useSuspendCommunity, useActivateCommunity, useSoftDeleteCommunity } from "@/features/communities";
 import FileUpload from "@/components/fileUpload/upload";
-import { toast } from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+
+interface CommunityFormData {
+    Community_Name?: string;
+    description?: string;
+    category?: string;
+    Visibility?: string;
+    visibility?: string;
+    owner?: string;
+}
 
 interface CommunityFormProps {
-    initialData?: any;
+    initialData?: CommunityFormData;
     close: () => void;
-    onSubmit: (data: any) => void;
+    onSubmit: (data: Record<string, unknown>) => void;
     isPending: boolean;
     title: string;
 }
@@ -37,17 +46,36 @@ function CommunityForm({ initialData, close, onSubmit, isPending, title }: Commu
     const [owner, setOwner] = useState(initialData?.owner || "");
     const [image, setImage] = useState<File | null>(null);
 
+    // Map category to interest_id
+    const categoryToInterestId: Record<string, string> = {
+        'Technology': '7',
+        'Business': '8',
+        'Lifestyle': '9',
+        'Education': '10',
+    };
+
+    // Map owner to user_id
+    const ownerToUserId: Record<string, string> = {
+        'User 1': '1',
+        'User 2': '2',
+        'User 3': '3',
+    };
+
     const handleSubmit = () => {
         if (!name.trim()) {
-            toast.error("Community name is required");
+            showErrorToast("Validation Error", "Community name is required");
             return;
         }
+        // Map UI fields to API payload format
         onSubmit({
-            community_Name: name,
-            description,
-            category,
-            Visibility: visibility,
-            owner,
+            title: name,
+            desc: description,
+            interest_id: categoryToInterestId[category] || '',
+            visibility: visibility.toLowerCase(),
+            is_safe_space: 'no',
+            is_member_screening: 'no',
+            can_post_anonymously: 'no',
+            user_id: ownerToUserId[owner] || '1',
             image: image,
         });
     };
@@ -132,6 +160,36 @@ function CommunityForm({ initialData, close, onSubmit, isPending, title }: Commu
 }
 
 
+interface EditCommunityModalProps {
+    data: CommunitiesRowDTO & { id: number };
+    close: () => void;
+}
+
+function EditCommunityModal({ data, close }: EditCommunityModalProps) {
+    const { mutate: updateCommunity, isPending: isUpdating } = useUpdateCommunity(data.id.toString());
+
+    return (
+        <CommunityForm
+            title="Edit Community"
+            initialData={data}
+            close={close}
+            isPending={isUpdating}
+            onSubmit={(formData) => {
+                updateCommunity(formData, {
+                    onSuccess: () => {
+                        showSuccessToast("Community Updated", "Community details have been successfully updated.");
+                        close();
+                    },
+                    onError: (err) => {
+                        showErrorToast("Update Failed", "Failed to update community details.");
+                        console.error(err);
+                    }
+                });
+            }}
+        />
+    );
+}
+
 export default function Communities() {
     const navigate = useNavigate();
     const { openModal, } = useModal();
@@ -145,23 +203,51 @@ export default function Communities() {
     const Appicon = { ...AppIcons }
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 10;
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
 
-
-    const { data, isLoading, isError, error } = useCommunities(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useCommunities(page, PAGE_SIZE, searchTerm, startDate, endDate, statusFilter);
+    const { mutateAsync: suspendCommunity } = useSuspendCommunity();
+    const { mutateAsync: activateCommunity } = useActivateCommunity();
+    const { mutateAsync: softDeleteCommunity } = useSoftDeleteCommunity();
 
     // Reset to page 1 when search term changes
-    useEffect(() => {
+    const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+    if (prevSearchTerm !== searchTerm) {
+        setPrevSearchTerm(searchTerm);
         setPage(1);
-    }, [searchTerm]);
+    }
 
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: CommunitiesRowDTO[] = data?.payload?.data?.map(mapCommunityToRowDTO) ?? [];
+    const rows: CommunitiesRowDTO[] = (() => {
+        if (!data) return [];
 
-    const totalPages = (data?.payload && typeof data.payload.total === 'number')
-        ? Math.ceil(data.payload.total / PAGE_SIZE)
-        : 1;
+        // The API returns communities in payload.communities
+        const communities = (data as { payload?: { communities?: unknown[] } })?.payload?.communities || [];
+
+        if (!Array.isArray(communities)) {
+            console.warn('Communities data is not an array:', communities);
+            return [];
+        }
+
+        return (communities as import("@/features/communities/types/community.types").CommunitiesApi[]).map(mapCommunityToRowDTO);
+    })();
+
+    const totalPages = (() => {
+        if (!data) return 1;
+
+        // API returns pagination info in payload.meta
+        const meta = (data as { payload?: { meta?: { total?: number } } })?.payload?.meta;
+        const total = meta?.total || 0;
+
+        if (typeof total === 'number' && total > 0) {
+            return Math.ceil(total / PAGE_SIZE);
+        }
+        return 1;
+    })();
 
     /* ----------------------------
        COLUMNS
@@ -188,25 +274,85 @@ export default function Communities() {
             header: COMMUNITY_TABLE_VARIANTE.JOINED_DATE_HEADER,
         },
     ];
-    const suspendCommunityFn = () => {
+    const suspendCommunityFn = (communityId: number) => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
                 icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
+                    eclipse: AppIcons.eclipseRed,
+                    icon: AppIcons.suspendedUserRed
                 }}
                 title="Suspend this community"
-                description="Are you sure you want to suspend backyard by tony?
-                Members will no longer be able to post,
-                comment, or join until it is reactivated. Existing content will still remain visible unless you manually take it down."
-                // warningText="All posts and members will be permanently removed."
+                description="Are you sure you want to suspend this community? Members will no longer be able to post, comment, or join until it is reactivated. Existing content will still remain visible unless you manually take it down."
                 primaryLabel={ActionType.SUSPEND_COMMUNITY}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
+                    try {
+                        await suspendCommunity(communityId);
+                        showSuccessToast("Community Suspended", "The community has been successfully suspended.");
+                        close();
+                    } catch (error) {
+                        console.error(error);
+                        showErrorToast("Suspension Failed", "Failed to suspend community.");
+                    }
+                }}
+            />
+        ));
+    }
 
+    const activateCommunityFn = (communityId: number) => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseGreen,
+                    icon: AppIcons.usersgroupGreen
+                }}
+                title="Activate this community"
+                description="This will restore the community. Members will be able to post, comment, and join again."
+                primaryLabel={ActionType.ACTIVATE_COMMUNITY}
+                primaryIntent="default"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+                    try {
+                        await activateCommunity(communityId);
+                        showSuccessToast("Community Activated", "The community has been successfully reactivated.");
+                        close();
+                    } catch (error) {
+                        console.error(error);
+                        showErrorToast("Activation Failed", "Failed to activate community.");
+                    }
+                }}
+            />
+        ));
+    }
+
+    const deleteCommunityFn = (communityId: number) => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseRed,
+                    icon: AppIcons.delete_red
+                }}
+                title="Delete this community"
+                description="Are you sure you want to delete this community? This action will remove the community and all its content. Members will lose access immediately."
+                primaryLabel={ActionType.DELETE_COMMUNITY}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+                    try {
+                        await softDeleteCommunity(communityId);
+                        showSuccessToast("Community Deleted", "The community has been successfully deleted.");
+                        close();
+                    } catch (error) {
+                        console.error(error);
+                        showErrorToast("Deletion Failed", "Failed to delete community.");
+                    }
                 }}
             />
         ));
@@ -226,11 +372,11 @@ export default function Communities() {
                     onSubmit={(data) => {
                         createCommunity(data, {
                             onSuccess: () => {
-                                toast.success("Community created successfully!");
+                                showSuccessToast("Community Created", "New community has been successfully created.");
                                 close();
                             },
                             onError: (err) => {
-                                toast.error("Failed to create community");
+                                showErrorToast("Creation Failed", "Failed to create community. Please try again.");
                                 console.error(err);
                             }
                         });
@@ -238,32 +384,11 @@ export default function Communities() {
                 />
             ), { type: 'side', width: 'w-[500px]' })
     }
-    const openEditComunityModal = (EditData: any) => {
+    const openEditComunityModal = (EditData: CommunitiesRowDTO & { id: number }) => {
         openModal(
-            ({ close }) => {
-                const { mutate: updateCommunity, isPending: isUpdating } = useUpdateCommunity(EditData.id);
-
-                return (
-                    <CommunityForm
-                        title="Edit Community"
-                        initialData={EditData}
-                        close={close}
-                        isPending={isUpdating}
-                        onSubmit={(data) => {
-                            updateCommunity(data, {
-                                onSuccess: () => {
-                                    toast.success("Community updated successfully!");
-                                    close();
-                                },
-                                onError: (err) => {
-                                    toast.error("Failed to update community");
-                                    console.error(err);
-                                }
-                            });
-                        }}
-                    />
-                );
-            }, { type: 'side', width: 'w-[500px]' })
+            ({ close }) => (
+                <EditCommunityModal data={EditData} close={close} />
+            ), { type: 'side', width: 'w-[500px]' })
     }
     const actions: TableAction<CommunitiesRowDTO>[] = [
         {
@@ -276,16 +401,32 @@ export default function Communities() {
             icon: Appicon.edit,
             onClick: (row) => openEditComunityModal(row),
         },
-        {
-            label: ActionType.MANAGE_MODERATORS,
-            icon: Appicon.user,
-            onClick: (row) => console.log("Suspend user", row.id),
-        },
+        // {
+        //     label: ActionType.MANAGE_MODERATORS,
+        //     icon: Appicon.user,
+        //     onClick: (row) => console.log("Manage moderators", row.id),
+        // },
         {
             label: ActionType.SUSPEND_COMMUNITY,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (_row) => suspendCommunityFn(),
+            onClick: (row) => {
+                if (row.status === 'in-active') {
+                    activateCommunityFn(row.id);
+                } else {
+                    suspendCommunityFn(row.id);
+                }
+            },
+            // Dynamic label based on row status
+            getLabel: (row: CommunitiesRowDTO) => row.status === 'in-active' ? ActionType.ACTIVATE_COMMUNITY : ActionType.SUSPEND_COMMUNITY,
+            getIcon: (row: CommunitiesRowDTO) => row.status === 'in-active' ? Appicon.usersgroupGreen : Appicon.unavailable,
+            getDanger: (row: CommunitiesRowDTO) => row.status !== 'in-active',
+        },
+        {
+            label: ActionType.DELETE_COMMUNITY,
+            icon: Appicon.delete_red,
+            danger: true,
+            onClick: (row) => deleteCommunityFn(row.id),
         },
     ];
 
@@ -295,22 +436,47 @@ export default function Communities() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load users"}
+                {(error as Error)?.message ?? "Failed to load users"}
             </div>
         );
     }
     const filterOptions: FilterOption[] = [
         {
-            label: "Date",
-            value: "date",
-            icon: AppIcons.calendar,
-        },
-        {
             label: "Status",
             value: "status",
             icon: AppIcons.lightning,
+            subOptions: [
+                { label: "All", value: "all", isSelected: statusFilter === 'all' },
+                { label: "Active", value: "active", isSelected: statusFilter === 'active' },
+                { label: "Deactivate", value: "deactivate", isSelected: statusFilter === 'deactivate' },
+            ]
+        },
+        {
+            label: "Date",
+            value: "date",
+            icon: AppIcons.calendar,
         }
     ];
+
+    const handleFilterSelect = (option: FilterOption) => {
+        if (option.value === 'date') {
+            openModal(({ close }) => (
+                <DateRangeModal
+                    close={close}
+                    onApply={(start, end) => {
+                        setStartDate(start);
+                        setEndDate(end);
+                        setPage(1);
+                    }}
+                />
+            ), { type: 'center' });
+        }
+    };
+
+    const handleSubOptionSelect = (_parentOption: FilterOption, subOption: { value: string }) => {
+        setStatusFilter(subOption.value);
+        setPage(1);
+    };
 
     /* ----------------------------
        RENDER
@@ -328,8 +494,49 @@ export default function Communities() {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6 self-center lg:flex lg:justify-end ">
-                        <div className="grid  md:w-fit md:flex md:justify-end md:itens-center">
-                            <FilterDropdown options={filterOptions} onSelect={(value) => console.log(value.value)} />
+                        <div className="grid  md:w-fit md:flex md:justify-end md:items-center md:gap-3">
+                            {/* Active Status Filter Badge */}
+                            {statusFilter !== 'all' && (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-[#FCE7F3] border border-[#FCE7F3] rounded-lg">
+                                    <span className="text-sm font-medium text-[#BE185D] capitalize">
+                                        {statusFilter}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setStatusFilter('all');
+                                            setPage(1);
+                                        }}
+                                        className="text-[#BE185D] hover:text-[#9F1239] transition-colors cursor-pointer"
+                                    >
+                                        <img src={AppIcons.x} alt="Clear" className="w-4 h-4 cursor-pointer" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Active Date Filter Badge */}
+                            {(startDate || endDate) && (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-[#FCE7F3] border border-[#FCE7F3] rounded-lg">
+                                    <span className="text-sm font-medium text-[#BE185D]">
+                                        {startDate} - {endDate}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setStartDate('');
+                                            setEndDate('');
+                                            setPage(1);
+                                        }}
+                                        className="text-[#BE185D] hover:text-[#9F1239] transition-colors cursor-pointer"
+                                    >
+                                        <img src={AppIcons.x} alt="Clear" className="w-4 h-4 cursor-pointer" />
+                                    </button>
+                                </div>
+                            )}
+
+                            <FilterDropdown
+                                options={filterOptions}
+                                onSelect={handleFilterSelect}
+                                onSubOptionSelect={handleSubOptionSelect}
+                            />
                         </div>
                         <div className="lg:w-70 sm:50">
                             <Button leftIcon={Appicon.plus_cicle} onClick={() => openCreateComunityModal()}>

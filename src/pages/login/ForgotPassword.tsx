@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
+import { showErrorToast } from "@/components/common/toastUtils";
 import { logger } from "@/utils/logger";
 import { FormInput } from "@/components/inputs/FormInput";
 import { INPUT_TYPES } from "@/components/inputs/constants";
@@ -18,7 +18,7 @@ function ForgotPassword() {
     const onSubmit = () => {
         console.log("Submitting forgot password for:", email);
         if (!email) {
-            toast.error("Please enter your email address");
+            showErrorToast("Validation Error", "Please enter your email address");
             return;
         }
 
@@ -33,7 +33,7 @@ function ForgotPassword() {
                     logger.info("Forgot password request sent successfully");
                     setSubmitted(true);
                 },
-                onError: (error: any) => {
+                onError: (error: Error & { code?: string; response?: { data?: { message?: string } } }) => {
                     console.error("Forgot password error details:", {
                         message: error.message,
                         code: error.code,
@@ -44,7 +44,7 @@ function ForgotPassword() {
                         ? "Request timed out. The server might be slow or unreachable."
                         : (error.response?.data?.message || "Failed to send reset link. Please try again.");
 
-                    toast.error(errorMessage);
+                    showErrorToast("Request Failed", errorMessage);
                     logger.error("Forgot password request failed", error);
                 },
             }

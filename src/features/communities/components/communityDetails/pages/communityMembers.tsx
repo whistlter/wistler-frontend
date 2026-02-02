@@ -1,5 +1,4 @@
 import { BUTTON_TYPE } from "@/components/button/constants";
-import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
@@ -10,18 +9,19 @@ import { ActionType } from "@/constants/actions";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { mapCommunityMembersToRowDTO, type CommunitiesMembersRowDTO } from "@/features/communities/types/communityMember.types";
 import { useCommunitiesMembers } from "@/features/communities/hooks/useCommunityMembers";
 
 export function CommunityMembers() {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { openModal, } = useModal();
 
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
-        setPlaceholder('Search Flagged Content by name or email...');
+        setPlaceholder('Search members by name or email...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
@@ -30,19 +30,22 @@ export function CommunityMembers() {
     const PAGE_SIZE = 10;
 
 
-    const { data, isLoading, isError, error } = useCommunitiesMembers(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useCommunitiesMembers(id || '', page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
-    useEffect(() => {
+    const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+    if (prevSearchTerm !== searchTerm) {
+        setPrevSearchTerm(searchTerm);
         setPage(1);
-    }, [searchTerm]);
+    }
 
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: CommunitiesMembersRowDTO[] = data?.data.map(mapCommunityMembersToRowDTO) ?? [];
+    const members = data?.payload?.members || [];
+    const rows: CommunitiesMembersRowDTO[] = members.map(mapCommunityMembersToRowDTO);
 
-    const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
+    const totalPages = data?.payload?.meta ? Math.ceil(data.payload.meta.total / PAGE_SIZE) : 1;
 
     /* ----------------------------
        COLUMNS
@@ -128,13 +131,13 @@ export function CommunityMembers() {
         {
             label: ActionType.CHANGE_ROLE,
             icon: Appicon.user,
-            onClick: (row) => changeUserRoleFn(),
+            onClick: () => changeUserRoleFn(),
         },
         {
             label: ActionType.REMOVE_USER,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => removeUserFn(),
+            onClick: () => removeUserFn(),
         }
     ];
 
@@ -144,28 +147,10 @@ export function CommunityMembers() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load users"}
+                {(error as Error)?.message ?? "Failed to load users"}
             </div>
         );
     }
-    const filterOptions: FilterOption[] = [
-        {
-            label: "Date",
-            value: "date",
-            icon: <span>📅</span>,
-        },
-        {
-            label: "Status",
-            value: "status",
-            icon: <span>⚡</span>,
-        },
-        {
-            label: "Role",
-            value: "role",
-            icon: <span>👤</span>,
-        },
-    ];
-
     /* ----------------------------
        RENDER
     ---------------------------- */

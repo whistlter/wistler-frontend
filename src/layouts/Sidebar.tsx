@@ -5,7 +5,10 @@ import { AppIcons } from '@/constants/constant';
 import { ActionType } from '@/constants/actions';
 import { BUTTON_TYPE } from '@/components/button/constants';
 import { ActionModal } from '@/components/modal/actionModal';
+import { ChangePasswordModal } from '@/components/modal/ChangePasswordModal';
 import { useModal } from '@/components/modal';
+import { showSuccessToast } from "@/components/common/toastUtils";
+
 
 const Sidebar = () => {
     const { openModal, } = useModal();
@@ -23,7 +26,8 @@ const Sidebar = () => {
         DashBoard: '/',
         User: '/users',
         Community: '/community',
-        Moderation: '/moderation'
+        Moderation: '/activity-logs'
+        // Moderation: '/moderation'
 
     };
 
@@ -31,7 +35,8 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: Path.DashBoard },
         { icon: Users, label: 'User Management', path: Path.User },
         { icon: MessageSquare, label: 'Communities', path: Path.Community },
-        { icon: Flag, label: 'Moderation', path: Path.Moderation },
+        { icon: Flag, label: 'Activity Logs', path: Path.Moderation },
+        // { icon: Flag, label: 'Moderation', path: Path.Moderation },
     ];
     /* 
      * Account items are handled separately:
@@ -47,14 +52,15 @@ const Sidebar = () => {
                     icon: AppIcons.warningYellow
                 }}
                 title="User Logout"
-                description={`Are you sure you want to ${ActionType.LOGOUT}?`}
+                description={`Are you sure you want to log out of your account? You’ll need to sign in again to continue.`}
                 // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.LOGOUT}
                 primaryIntent="danger"
                 showLoader
-                buttonVariant={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
                     handleLogout();
+                    showSuccessToast("Logged Out", "You have been successfully logged out.");
                 }}
             />
         ));
@@ -77,17 +83,60 @@ const Sidebar = () => {
             </div>
 
             {/* User Profile */}
-            <div className="px-6 py-2 flex flex-col items-center">
+            <div
+                className="px-6 py-2 flex flex-col items-center cursor-pointer  transition-colors duration-200"
+            >
                 <div className="w-[72px] h-[72px] rounded-full p-[3px] mb-3">
-                    <div className="w-full h-full rounded-full bg-[#3d3d6b] flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-[#3d3d6b] flex items-center justify-center overflow-hidden">
                         {/* Initials or generic avatar */}
-                        <span className="text-white text-[13px] font-medium ">
-                            <img src={icon.profile} alt="" />
-                        </span>
+                        {user?.image ? (
+                            <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-white text-[13px] font-medium ">
+                                <img src={icon.profile} alt="" />
+                            </span>
+                        )}
                     </div>
                 </div>
                 <h2 className="text-white font-medium text-[15px] mb-0.5 capitalize">
-                    {(user?.first_name + ' ' + user?.last_name) || 'Guest User'}
+                    <div className="flex">
+                        {(user?.first_name + ' ' + user?.last_name) || 'Guest User'}
+                        <img src={AppIcons.edit} alt="" className="w-4 h-4 opacity-40 ml-1"
+                            onClick={() => openModal(({ close }) => (
+                                <ActionModal
+                                    close={close}
+                                    variant="profile"
+                                    image={user?.image}
+                                    title={(user?.first_name + ' ' + user?.last_name) || 'Guest User'}
+                                    description={user?.email || 'No email'}
+                                    primaryLabel="Sign out"
+                                    onPrimaryAction={logoutFnc}
+                                    buttonVariant={BUTTON_TYPE.TETIARY}
+                                    body={
+                                        <div className="w-full bg-[#F9FAFB] border border-[#EAECF0] rounded-lg p-2.5 flex items-center justify-between gap-3 mb-2">
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <img src={AppIcons.lock} alt="" className="w-4 h-4 opacity-40 ml-1" />
+                                                <span className="text-[13px] text-[#666666] font-medium">Password</span>
+                                                <div className="text-[18px] text-[#666666] tracking-widest pt-1 px-4">•••••••••••••</div>
+                                            </div>
+                                            <button
+                                                className="text-[13px] font-semibold text-[#FF2860] hover:text-[#D11A4B] whitespace-nowrap px-2 cursor-pointer"
+                                                onClick={() => {
+                                                    close(); // Close profile modal first
+                                                    setTimeout(() => {
+                                                        openModal(({ close }) => (
+                                                            <ChangePasswordModal close={close} />
+                                                        ));
+                                                    }, 200); // Small delay for smooth transition
+                                                }}
+                                            >
+                                                Change Password
+                                            </button>
+                                        </div>
+                                    }
+                                />
+                            ), { type: 'center', width: 'max-w-[480px]' })} />
+                    </div>
                 </h2>
                 <p className="text-center text-[11px] font-semibold text-[#666]">
                     {user?.email || 'No email'}

@@ -22,10 +22,7 @@ type OverviewTabProps = {
     activities: ActivityItem[];
 };
 
-export function ActivitiesLog({ stats, activities }: OverviewTabProps) {
-    const icons = {
-
-    }
+export function ActivitiesLog({ activities }: Omit<OverviewTabProps, 'stats'>) {
     const getActivityIcon = (action: string) => {
         if (action.toLowerCase().includes("comment")) return AppIcons.unavailable;
         if (action.toLowerCase().includes("edit")) return AppIcons.unavailable;

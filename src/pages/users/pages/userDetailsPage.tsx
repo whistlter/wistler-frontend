@@ -11,10 +11,11 @@ import { BUTTON_TYPE } from "@/components/button/constants";
 import type { dropdownOption } from "@/components/dropdown/types";
 import { ActionModal } from "@/components/modal/actionModal";
 import { useModal } from "@/components/modal";
-import { useUser, useBlockUser, useResetUserPassword } from "@/features/users/hooks/useUsers";
+import { useUser, useBlockUser, useActivateUser, useResetUserPassword } from "@/features/users/hooks/useUsers";
 import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { statusToColor } from "@/utils/helper";
 import { Loader } from "@/components/common/Loader";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 
 type Tab = "Communities" | "Activities";
 
@@ -31,6 +32,7 @@ export default function UserDetailsPage() {
     const { stats, activities, isLoading: isModLoading } = useModeration();
 
     const { mutateAsync: blockUser } = useBlockUser();
+    const { mutateAsync: activateUser } = useActivateUser();
     const { mutateAsync: resetPassword } = useResetUserPassword();
 
     const tabs = [
@@ -44,7 +46,7 @@ export default function UserDetailsPage() {
     if (isUserError) {
         return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-                {(userError as any)?.message ?? "Failed to load user data"}
+                {(userError as Error)?.message ?? "Failed to load user data"}
             </div>
         );
     }
@@ -102,13 +104,56 @@ export default function UserDetailsPage() {
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-                    if (userId) await blockUser(userId);
-                    close();
+                    if (userId) {
+                        try {
+                            await blockUser(userId);
+                            showSuccessToast("User Suspended", "The user has been successfully suspended.");
+                            close();
+                        } catch (error) {
+                            console.error(error);
+                            showErrorToast("Suspension Failed", "Failed to suspend user.");
+                        }
+                    } else {
+                        close();
+                    }
                 }}
             />
         ));
     }
 
+    const activateUserFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseGreen,
+                    icon: AppIcons.usersgroupGreen
+                }}
+                title={ActionType.ACTIVATE_USER}
+                description="This will restore the user's access to their account. They will be able to sign in and use the platform again."
+                primaryLabel={ActionType.ACTIVATE_USER}
+                primaryIntent="default"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+                    if (userId) {
+                        try {
+                            await activateUser(userId);
+                            showSuccessToast("User Activated", "The user account has been reactivated.");
+                            close();
+                        } catch (error) {
+                            console.error(error);
+                            showErrorToast("Activation Failed", "Failed to activate user.");
+                        }
+                    } else {
+                        close();
+                    }
+                }}
+            />
+        ));
+    }
+
+    // ... existing shadowBanUserFn ...
     const shadowBanUserFn = () => {
         openModal(({ close }) => (
             <ActionModal
@@ -168,8 +213,18 @@ export default function UserDetailsPage() {
                 showLoader
                 buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
-                    if (userId) await resetPassword(userId);
-                    close();
+                    if (userId) {
+                        try {
+                            await resetPassword(userId);
+                            showSuccessToast("Reset Instructions Sent", `Password reset instructions sent to ${user.email}.`);
+                            close();
+                        } catch (error) {
+                            console.error(error);
+                            showErrorToast("Reset Failed", "Failed to send reset instructions.");
+                        }
+                    } else {
+                        close();
+                    }
                 }}
             />
         ));
@@ -200,9 +255,15 @@ export default function UserDetailsPage() {
 
                 <div className="grid grid-cols-2 gap-6 self-center lg:flex lg:justify-end  px-6">
                     <div className="lg:w-70 sm:50">
-                        <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
-                            {ActionType.SUSPEND_USER}
-                        </Button>
+                        {user.status === 'blocked' ? (
+                            <Button leftIcon={AppIcons.usersgroupGreen} variant={BUTTON_TYPE.TETIARY} onClick={() => activateUserFn()}>
+                                {ActionType.ACTIVATE_USER}
+                            </Button>
+                        ) : (
+                            <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
+                                {ActionType.SUSPEND_USER}
+                            </Button>
+                        )}
                     </div>
                     <div className="grid  md:w-fit md:flex md:justify-end md:itens-center">
                         <Dropdown options={dropdownOptions} onSelect={(val) => handleMoreOptions(val.value)} label="More options" LeftIcon={AppIcons.verticalThreeDot} />
@@ -298,7 +359,7 @@ export default function UserDetailsPage() {
 
             {/* TAB CONTENT */}
             {activeTab === "Activities" && stats && (
-                <ActivitiesLog stats={stats} activities={activities || []} />
+                <ActivitiesLog activities={activities || []} />
             )}
             {activeTab === "Communities" && <UsercommunityTap />}
         </div>

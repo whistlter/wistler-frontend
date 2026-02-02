@@ -17,6 +17,8 @@ const Communities = lazy(() => import("@/pages/communities/Communities"));
 const Moderation = lazy(() => import("@/pages/moderation/ModerationPage"));
 const UserDetailsPage = lazy(() => import("@/pages/users/pages/userDetailsPage"));
 const CommunityDetailsPage = lazy(() => import("@/features/communities/components/communityDetails/CommunityDetailsPage"));
+const UserCommunityDetailsPage = lazy(() => import("@/pages/users/pages/UserCommunityDetailsPage"));
+const ActivityLogs = lazy(() => import("@/pages/activity-logs/ActivityLogs"));
 const NotFound = lazy(() => import("@/pages/not-found/NotFound"));
 
 export default function AppRoutes() {
@@ -38,8 +40,10 @@ export default function AppRoutes() {
             <Route path="users" element={<Users />} />
             <Route path="community" element={<Communities />} />
             <Route path="moderation" element={<Moderation />} />
+            <Route path="activity-logs" element={<ActivityLogs />} />
             <Route path="settings" element={<ModalDemo />} />
             <Route path="users/Details/:id" element={<UserDetailsPage />} />
+            <Route path="users/:userId/community/:communityId" element={<UserCommunityDetailsPage />} />
             <Route path="community/Details/:id" element={<CommunityDetailsPage />} />
           </Route>
         </Route>

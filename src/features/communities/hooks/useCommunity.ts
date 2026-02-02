@@ -16,7 +16,14 @@ export interface CommunitiesResponse {
 }
 
 // GET all communities with pagination
-export function useCommunities(page: number, pageSize: number = 30, searchTerm?: string) {
+export function useCommunities(
+    page: number,
+    pageSize: number = 30,
+    searchTerm?: string,
+    startDate?: string,
+    endDate?: string,
+    status?: string
+) {
     const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pageSize.toString(),
@@ -26,9 +33,21 @@ export function useCommunities(page: number, pageSize: number = 30, searchTerm?:
         params.append('search', searchTerm.trim());
     }
 
+    if (startDate) {
+        params.append('startDate', startDate);
+    }
+
+    if (endDate) {
+        params.append('endDate', endDate);
+    }
+
+    if (status && status !== 'all') {
+        params.append('status', status);
+    }
+
     return useGet<CommunitiesResponse>(
-        ['communities', page.toString(), pageSize.toString(), searchTerm || ''],
-        `/communities?${params.toString()}`,
+        ['communities', page.toString(), pageSize.toString(), searchTerm || '', startDate || '', endDate || '', status || ''],
+        `admin/communities?${params.toString()}`,
         {
             staleTime: 2 * 60 * 1000,
         }
@@ -47,45 +66,48 @@ export interface SingleCommunityResponse {
 export function useCommunity(id: string) {
     return useQuery<SingleCommunityResponse>({
         queryKey: ['communities', id],
-        queryFn: () => api.get<SingleCommunityResponse>(`/communities/${id}`),
+        queryFn: () => api.get<SingleCommunityResponse>(`admin/community/${id}`),
         enabled: !!id,
         staleTime: 5 * 60 * 1000,
     });
 }
 
+// CREATE community payload type
+export interface CreateCommunityPayload {
+    image?: File;
+    title: string;
+    desc: string;
+    interest_id: string; // comma-separated IDs like "7,5"
+    visibility: 'private' | 'public';
+    is_safe_space: 'yes' | 'no';
+    is_member_screening: 'yes' | 'no';
+    can_post_anonymously: 'yes' | 'no';
+    user_id: string;
+}
+
 // CREATE community
 export function useCreateCommunity() {
     const queryClient = useQueryClient();
-    return useMutation<SingleCommunityResponse, Error, any>({
-        mutationFn: (data: any) => {
-            console.log('useCreateCommunity data:', data);
+    return useMutation<SingleCommunityResponse, Error, CreateCommunityPayload>({
+        mutationFn: (data: CreateCommunityPayload) => {
+            const formData = new FormData();
 
-            // Check if any value is a File or Blob
-            const hasFile = Object.values(data).some(
-                (val) => val instanceof File || val instanceof Blob
-            );
-
-            console.log('Has file for upload:', hasFile);
-
-            if (hasFile) {
-                const formData = new FormData();
-                Object.keys(data).forEach((key) => {
-                    if (data[key] !== null && data[key] !== undefined) {
-                        formData.append(key, data[key]);
-                    }
-                });
-
-                // Debug log FormData entries
-                for (const pair of (formData as any).entries()) {
-                    console.log(`FormData: ${pair[0]} =`, pair[1]);
-                }
-
-                return api.post<SingleCommunityResponse>('/communities', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
+            // Append all fields to FormData
+            if (data.image) {
+                formData.append('image', data.image);
             }
+            formData.append('title', data.title);
+            formData.append('desc', data.desc);
+            formData.append('interest_id', data.interest_id);
+            formData.append('visibility', data.visibility);
+            formData.append('is_safe_space', data.is_safe_space);
+            formData.append('is_member_screening', data.is_member_screening);
+            formData.append('can_post_anonymously', data.can_post_anonymously);
+            formData.append('user_id', data.user_id);
 
-            return api.post<SingleCommunityResponse>('/communities', data);
+            return api.post<SingleCommunityResponse>('admin/community/create', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['communities'] });
@@ -93,31 +115,58 @@ export function useCreateCommunity() {
     });
 }
 
+// UPDATE community payload type (same as create but all fields optional except what's being updated)
+export interface UpdateCommunityPayload {
+    image?: File;
+    title?: string;
+    desc?: string;
+    interest_id?: string;
+    visibility?: 'private' | 'public';
+    is_safe_space?: 'yes' | 'no';
+    is_member_screening?: 'yes' | 'no';
+    can_post_anonymously?: 'yes' | 'no';
+    user_id?: string;
+}
+
 // UPDATE community
 export function useUpdateCommunity(id: string) {
     const queryClient = useQueryClient();
-    return useMutation<SingleCommunityResponse, Error, any>({
-        mutationFn: (data: any) => {
-            console.log('useUpdateCommunity data:', data);
+    return useMutation<SingleCommunityResponse, Error, UpdateCommunityPayload>({
+        mutationFn: (data: UpdateCommunityPayload) => {
+            const formData = new FormData();
 
-            const hasFile = Object.values(data).some(
-                (val) => val instanceof File || val instanceof Blob
-            );
-
-            if (hasFile) {
-                const formData = new FormData();
-                Object.keys(data).forEach((key) => {
-                    if (data[key] !== null && data[key] !== undefined) {
-                        formData.append(key, data[key]);
-                    }
-                });
-
-                return api.put<SingleCommunityResponse>(`/communities/${id}`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
+            // Append all fields to FormData
+            if (data.image) {
+                formData.append('image', data.image);
+            }
+            if (data.title) {
+                formData.append('title', data.title);
+            }
+            if (data.desc) {
+                formData.append('desc', data.desc);
+            }
+            if (data.interest_id) {
+                formData.append('interest_id', data.interest_id);
+            }
+            if (data.visibility) {
+                formData.append('visibility', data.visibility);
+            }
+            if (data.is_safe_space) {
+                formData.append('is_safe_space', data.is_safe_space);
+            }
+            if (data.is_member_screening) {
+                formData.append('is_member_screening', data.is_member_screening);
+            }
+            if (data.can_post_anonymously) {
+                formData.append('can_post_anonymously', data.can_post_anonymously);
+            }
+            if (data.user_id) {
+                formData.append('user_id', data.user_id);
             }
 
-            return api.put<SingleCommunityResponse>(`/communities/${id}`, data);
+            return api.post<SingleCommunityResponse>(`user/community/edit/${id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['communities'] });
@@ -128,7 +177,46 @@ export function useUpdateCommunity(id: string) {
 // DELETE community
 export function useDeleteCommunity(id: string) {
     const queryClient = useQueryClient();
-    return useDelete(`/communities/${id}`, {
+    return useDelete(`admin/communities/${id}`, {
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['communities'] });
+        },
+    });
+}
+
+// TOGGLE community status
+// Endpoint: admin/community/:id/toggle-status/:status
+export function useToggleCommunityStatus() {
+    const queryClient = useQueryClient();
+    return useMutation<SingleCommunityResponse, Error, { id: string | number; status: string }>({
+        mutationFn: ({ id, status }) => api.patch<SingleCommunityResponse>(`/admin/community/${id}/toggle-status/${status}`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['communities'] });
+        },
+    });
+}
+
+// Suspend community: admin/community/:id/toggle-status/suspended
+export function useSuspendCommunity() {
+    const { mutateAsync } = useToggleCommunityStatus();
+    return {
+        mutateAsync: (id: string | number) => mutateAsync({ id, status: 'in-active' })
+    };
+}
+
+// Activate community: admin/community/:id/toggle-status/active
+export function useActivateCommunity() {
+    const { mutateAsync } = useToggleCommunityStatus();
+    return {
+        mutateAsync: (id: string | number) => mutateAsync({ id, status: 'active' })
+    };
+}
+
+// Soft delete community: admin/community/:id?kind=soft
+export function useSoftDeleteCommunity() {
+    const queryClient = useQueryClient();
+    return useMutation<SingleCommunityResponse, Error, string | number>({
+        mutationFn: (id) => api.delete<SingleCommunityResponse>(`admin/community/${id}?kind=soft`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['communities'] });
         },

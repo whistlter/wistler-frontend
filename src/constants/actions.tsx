@@ -1,7 +1,10 @@
 export const ActionType = {
     DELETE: 'Delete',
     SUSPEND_COMMUNITY: 'Suspend community',
+    DELETE_COMMUNITY: 'Delete community',
+    ACTIVATE_COMMUNITY: 'Activate community',
     SUSPEND_USER: 'Suspend user',
+    ACTIVATE_USER: 'Activate user',
     RESTORE: 'Restore',
     MOVE_TO_REVIEW: 'Move to review',
     TAKE_DOWN: 'Take down',
@@ -19,7 +22,7 @@ export const ActionType = {
     MANAGE_MODERATORS: 'Manage Moderators',
     SHADOW_BAN_USER: 'Shadowban user',
     RESET_PASSWORD: 'Reset password',
-    LOGOUT: 'Logout'
+    LOGOUT: 'No, Stay'
 } as const;
 
 export type ActionType = typeof ActionType[keyof typeof ActionType];

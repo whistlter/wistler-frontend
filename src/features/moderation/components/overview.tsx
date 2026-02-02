@@ -85,7 +85,7 @@ export function OverviewTab({ stats, activities }: OverviewTabProps) {
                     </div>
                 </h2>
 
-                <ActivitiesLog stats={stats} activities={activities} />
+                <ActivitiesLog activities={activities} />
             </div>
         </div>
     );

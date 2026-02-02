@@ -1,7 +1,5 @@
 import { Button } from "@/components/button/Button";
 import { BUTTON_TYPE } from "@/components/button/constants";
-import { FilterDropdown } from "@/components/filter/FilterDropdown";
-import type { FilterOption } from "@/components/filter/types";
 import { INPUT_TYPES } from "@/components/inputs/constants";
 import { FormInput } from "@/components/inputs/FormInput";
 import { useModal } from "@/components/modal";
@@ -15,36 +13,46 @@ import { ActionType } from "@/constants/actions";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { mapCommunityPostToRowDTO, type CommunitiesPostRowDTO } from "@/features/communities/types/communityPost.types";
-import { useCommunitiesPost } from "@/features/communities/hooks/useCommunityPost";
+import { useCommunitiesPost, useSoftDeletePost } from "@/features/communities/hooks/useCommunityPost";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 
 export function CommunityPosts() {
+    const { id } = useParams<{ id: string }>();
     const { openModal, } = useModal();
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
-        setPlaceholder('Search Review Queue by Name or Email...');
+        setPlaceholder('Search posts by caption or author...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
     const Appicon = { ...AppIcons }
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 10;
+    const [startDate] = useState<string>('');
+    const [endDate] = useState<string>('');
+    const [statusFilter] = useState<string>('all');
 
 
-    const { data, isLoading, isError, error } = useCommunitiesPost(page, PAGE_SIZE, searchTerm);
+    const { data, isLoading, isError, error } = useCommunitiesPost(id || '', page, PAGE_SIZE, searchTerm, startDate, endDate, statusFilter);
+    const { mutateAsync: softDeletePost } = useSoftDeletePost();
 
     // Reset to page 1 when search term changes
-    useEffect(() => {
+    const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+    if (prevSearchTerm !== searchTerm) {
+        setPrevSearchTerm(searchTerm);
         setPage(1);
-    }, [searchTerm]);
+    }
 
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const rows: CommunitiesPostRowDTO[] = data?.data.map(mapCommunityPostToRowDTO) ?? [];
+    const posts = data?.payload?.posts || [];
+    const rows: CommunitiesPostRowDTO[] = posts.map(mapCommunityPostToRowDTO);
 
-    const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
+    const totalPages = data?.payload?.meta?.totalPages ?? 1;
 
     /* ----------------------------
        COLUMNS
@@ -75,7 +83,7 @@ export function CommunityPosts() {
     /* ----------------------------
        ACTIONS
     ---------------------------- */
-    const viewpostFn = (data: any) => {
+    const viewpostFn = () => {
         openModal(
             ({ close }) => (
                 <div className="flex h-full flex-col bg-white">
@@ -198,23 +206,29 @@ export function CommunityPosts() {
             />
         ));
     }
-    const deleteContentFn = () => {
+    const deleteContentFn = (postId: number) => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
                 icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
+                    eclipse: AppIcons.eclipseRed,
+                    icon: AppIcons.delete_red
                 }}
                 title="Delete content"
                 description="This permanently removes the content from the platform."
-                // warningText="All posts and members will be permanently removed."
                 primaryLabel={ActionType.DELETE}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    try {
+                        await softDeletePost(postId);
+                        showSuccessToast("Post Deleted", "The post has been successfully deleted.");
+                        close();
+                    } catch (error) {
+                        console.error("Failed to delete post:", error);
+                        showErrorToast("Deletion Failed", "Failed to delete the post. Please try again.");
+                    }
                 }}
             />
         ));
@@ -225,18 +239,18 @@ export function CommunityPosts() {
         {
             label: ActionType.VIEW_POST,
             icon: Appicon.eyeOpen,
-            onClick: (row) => viewpostFn(row),
+            onClick: () => viewpostFn(),
         },
         {
             label: ActionType.MOVE_TO_REVIEW,
             icon: Appicon.user,
-            onClick: (row) => moveToReviewFn(),
+            onClick: () => moveToReviewFn(),
         },
         {
             label: ActionType.DELETE,
             icon: Appicon.delete_red,
             danger: true,
-            onClick: (row) => deleteContentFn(),
+            onClick: (row) => deleteContentFn(row.id),
         }
     ];
 
@@ -246,28 +260,10 @@ export function CommunityPosts() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load users"}
+                {(error as Error)?.message ?? "Failed to load users"}
             </div>
         );
     }
-    const filterOptions: FilterOption[] = [
-        {
-            label: "Date",
-            value: "date",
-            icon: <span>📅</span>,
-        },
-        {
-            label: "Status",
-            value: "status",
-            icon: <span>⚡</span>,
-        },
-        {
-            label: "Role",
-            value: "role",
-            icon: <span>👤</span>,
-        },
-    ];
-
     /* ----------------------------
        RENDER
     ---------------------------- */

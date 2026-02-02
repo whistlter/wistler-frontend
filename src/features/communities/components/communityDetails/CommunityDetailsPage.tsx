@@ -1,6 +1,6 @@
 // src/features/moderation/ModerationPage.tsx
-import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { CommunityMembers } from "./pages/communityMembers";
 import { CommunityPosts } from "./pages/communityPosts";
 import { CommunityOverviewTab } from "./pages/communityOverview";
@@ -11,17 +11,33 @@ import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { ActionType } from "@/constants/actions";
-import { ActionModal } from "@/components/modal/actionModal";
+import { ActionModal, DateRangeModal, StatusFilterModal } from "@/components/modal";
 import { NavLink } from "react-router-dom";
-
+import { useCommunity, useSuspendCommunity, useActivateCommunity, useSoftDeleteCommunity } from "@/features/communities/hooks/useCommunity";
+import { AxiosError } from "axios";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 
 
 type Tab = "overview" | "Members" | "Posts";
 
 export default function CommunityDetailsPage() {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const { openModal, } = useModal();
     const [activeTab, setActiveTab] = useState<Tab>("overview");
-    const { stats, activities, isLoading, isError, error } = useModeration();
+    const { data: communityData, isLoading, isError, error } = useCommunity(id || '');
+    const { mutateAsync: suspendCommunity } = useSuspendCommunity();
+    const { mutateAsync: activateCommunity } = useActivateCommunity();
+    const { mutateAsync: softDeleteCommunity } = useSoftDeleteCommunity();
+
+    // Debug log
+    console.log('Route ID:', id);
+    console.log('Community data:', communityData);
+    console.log('Community error:', error);
+    console.log('Is loading:', isLoading);
+    console.log('Is error:', isError);
+
+    const community = communityData?.payload?.community;
 
     const tabs = [
         { key: "overview" as const, label: "Overview" },
@@ -34,8 +50,15 @@ export default function CommunityDetailsPage() {
     ---------------------------- */
     if (isError) {
         return (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load moderation data"}
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-600">
+                <h3 className="font-semibold mb-2">Failed to load community data</h3>
+                <p className="text-sm mb-2">{(error as AxiosError)?.message || "Unknown error"}</p>
+                <p className="text-xs text-red-500">
+                    Status: {(error as AxiosError)?.response?.status} - {(error as AxiosError)?.response?.statusText}
+                </p>
+                <p className="text-xs mt-2 text-gray-600">
+                    Check the browser console for more details. Make sure community ID {id} exists on the backend.
+                </p>
             </div>
         );
     }
@@ -46,7 +69,7 @@ export default function CommunityDetailsPage() {
     if (isLoading) {
         return (
             <div className="py-20 text-center text-[13px] text-[#969696]">
-                Loading moderation data…
+                Loading community data…
             </div>
         );
     }
@@ -54,34 +77,151 @@ export default function CommunityDetailsPage() {
     /* ----------------------------
        NO DATA STATE
     ---------------------------- */
-    if (!stats) {
+    if (!community) {
         return (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                No moderation data available
+                No community data available
             </div>
         );
     }
-    const suspendUserFn = () => {
+
+    // Format stats data from community
+    const stats = {
+        flaggedPosts: 0,
+        flaggedComments: 0,
+        itemsInReview: 0,
+        userReports: 0,
+    };
+
+    const activities = [
+        {
+            id: 1,
+            action: 'Community Created',
+            description: `Community created on ${community.createdAt ? new Date(community.createdAt).toLocaleDateString() : 'N/A'}`,
+            time: community.createdAt || '',
+        },
+        {
+            id: 2,
+            action: 'Last Updated',
+            description: `Community updated on ${community.updatedAt ? new Date(community.updatedAt).toLocaleDateString() : 'N/A'}`,
+            time: community.updatedAt || '',
+        },
+    ];
+
+    const suspendCommunityFn = () => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
                 icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
+                    eclipse: AppIcons.eclipseRed,
+                    icon: AppIcons.suspendedUserRed
                 }}
-                title="Suspend user"
-                description="Temporarily disables account access."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.SUSPEND_USER}
+                title="Suspend this community"
+                description="Are you sure you want to suspend this community? Members will no longer be able to post, comment, or join until it is reactivated."
+                primaryLabel={ActionType.SUSPEND_COMMUNITY}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    if (!id) return;
+                    try {
+                        await suspendCommunity(id);
+                        showSuccessToast("Community Suspended", "The community has been suspended successfully.");
+                        close();
+                    } catch (error) {
+                        console.error("Failed to suspend community:", error);
+                        showErrorToast("Suspension Failed", "Failed to suspend the community. Please try again.");
+                    }
                 }}
             />
         ));
     }
+
+    const activateCommunityFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseGreen,
+                    icon: AppIcons.usersgroupGreen
+                }}
+                title="Activate this community"
+                description="This will restore the community. Members will be able to post, comment, and join again."
+                primaryLabel={ActionType.ACTIVATE_COMMUNITY}
+                primaryIntent="default"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+                    if (!id) return;
+                    try {
+                        await activateCommunity(id);
+                        showSuccessToast("Community Activated", "The community has been reactivated successfully.");
+                        close();
+                    } catch (error) {
+                        console.error("Failed to activate community:", error);
+                        showErrorToast("Activation Failed", "Failed to activate the community. Please try again.");
+                    }
+                }}
+            />
+        ));
+    }
+
+    const deleteCommunityFn = () => {
+        openModal(({ close }) => (
+            <ActionModal
+                close={close}
+                icon={{
+                    eclipse: AppIcons.eclipseRed,
+                    icon: AppIcons.delete_red
+                }}
+                title="Delete this community"
+                description="Are you sure you want to delete this community? This action will remove the community and all its content. Members will lose access immediately."
+                primaryLabel={ActionType.DELETE_COMMUNITY}
+                primaryIntent="danger"
+                showLoader
+                buttonVariant={BUTTON_TYPE.TETIARY}
+                onPrimaryAction={async () => {
+                    if (!id) return;
+                    try {
+                        await softDeleteCommunity(id);
+                        showSuccessToast("Community Deleted", "The community has been deleted successfully.");
+                        close();
+                        navigate('/community');
+                    } catch (error) {
+                        console.error("Failed to delete community:", error);
+                        showErrorToast("Deletion Failed", "Failed to delete the community. Please try again.");
+                    }
+                }}
+            />
+        ));
+    }
+
+    const handleFilterSelect = (option: FilterOption) => {
+        if (option.value === 'date') {
+            openModal(({ close }) => (
+                <DateRangeModal
+                    close={close}
+                    onApply={(startDate, endDate) => {
+                        console.log('Date range selected:', startDate, endDate);
+                        // Handle the date range filter here
+                    }}
+                />
+            ), { type: 'center' });
+        } else if (option.value === 'status') {
+            openModal(({ close }) => (
+                <StatusFilterModal
+                    close={close}
+                    onApply={(selectedStatuses) => {
+                        console.log('Status filter selected:', selectedStatuses);
+                        // Handle the status filter here
+                    }}
+                />
+            ), { type: 'center' });
+        } else {
+            console.log('Filter selected:', option.value);
+        }
+    };
+
     /* ----------------------------
        RENDER
     ---------------------------- */
@@ -104,25 +244,32 @@ export default function CommunityDetailsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2  gap-6">
                     <div className="flex lg:w-fit sm:w-70  flex-col items-start gap-1 shrink-0">
                         <div className="flex text-[#666]  text-[13px] font-medium ">
-                            <NavLink to={'/community'}>Communities</NavLink> <img src={AppIcons.chevronrightGrey} alt="" /> <span className="text-[#FF2860]">{'Creative Minds Lounge'}</span>
+                            <NavLink to={'/communities'}>Communities</NavLink> <img src={AppIcons.chevronrightGrey} alt="" /> <span className="text-[#FF2860]">{community.title}</span>
                         </div>
                         <div className="text-[#0A0D14] text-center text-[19px] font-semibold">
-                            Communities Details
+                            Community Details
                         </div>
                     </div>
-                    <div className={` grid ${activeTab === "overview" ? 'grid-cols-1 lg:py-6' : 'grid-cols-[1fr_100px] justify-end w-full justify-items-center gap-6 lg:py-6'}  `}>
-                        <div className="lg:grid lg:w-70 lg:ml-auto w-full">
-                            <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendUserFn()}>
-                                {ActionType.SUSPEND_COMMUNITY}
+                    <div className={` flex ${activeTab === "overview" ? 'lg:py-6' : 'justify-end w-full gap-6 lg:py-6'}  `}>
+                        <div className="flex gap-3 lg:ml-auto w-full lg:w-[70%]">
+                            {(community.is_suspended || community.status === 'in-active' || community.is_deleted) ? (
+                                <Button leftIcon={AppIcons.usersgroupGreen} variant={BUTTON_TYPE.TETIARY} onClick={() => activateCommunityFn()}>
+                                    {ActionType.ACTIVATE_COMMUNITY}
+                                </Button>
+                            ) : (
+                                <Button leftIcon={AppIcons.unavailable} variant={BUTTON_TYPE.TETIARY} onClick={() => suspendCommunityFn()}>
+                                    {ActionType.SUSPEND_COMMUNITY}
+                                </Button>
+                            )}
+                            <Button leftIcon={AppIcons.delete_red} variant={BUTTON_TYPE.TETIARY} onClick={() => deleteCommunityFn()}>
+                                {ActionType.DELETE_COMMUNITY}
                             </Button>
-
                         </div>
-                        <div className="grid w-full">
-                            {(activeTab === "Members" || activeTab === "Posts") &&
-                                <FilterDropdown options={filterOptions} onSelect={(value) => console.log(value.value)} />
-                            }
-
-                        </div>
+                        {(activeTab === "Members" || activeTab === "Posts") && (
+                            <div className="grid w-fit">
+                                <FilterDropdown options={filterOptions} onSelect={handleFilterSelect} />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -150,7 +297,7 @@ export default function CommunityDetailsPage() {
 
             {/* TAB CONTENT */}
             {activeTab === "overview" && (
-                <CommunityOverviewTab stats={stats} activities={activities || []} />
+                <CommunityOverviewTab stats={stats} activities={activities || []} community={community} />
             )}
             {activeTab === "Members" && <CommunityMembers />}
             {activeTab === "Posts" && <CommunityPosts />}

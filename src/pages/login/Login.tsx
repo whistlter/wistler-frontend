@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 import { logger } from "@/utils/logger";
 
 import { FormInput } from "@/components/inputs/FormInput";
@@ -25,12 +25,12 @@ function Login() {
       {
         onSuccess: () => {
           logger.info("User logged in successfully");
-          toast.success("Login successful!");
+          showSuccessToast("Login Successful", "Welcome back!");
           navigate("/users");
         },
         onError: (error) => {
           logger.error("Login failed", error);
-          toast.error("Invalid email or password");
+          showErrorToast("Login Failed", "Invalid email or password");
         },
       }
     );

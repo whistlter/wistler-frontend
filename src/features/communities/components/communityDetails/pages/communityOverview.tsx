@@ -1,6 +1,7 @@
 // src/features/moderation/components/OverviewTab.tsx
 
 import { AppIcons } from "@/constants/constant";
+import type { CommunitiesApi } from "../../../types/community.types";
 
 type ModerationStats = {
     flaggedPosts: number;
@@ -18,41 +19,38 @@ type ActivityItem = {
 };
 
 type OverviewTabProps = {
-    stats: ModerationStats;
+    stats?: ModerationStats;
     activities: ActivityItem[];
+    community?: CommunitiesApi; // Community data from API
 };
 
-export function CommunityOverviewTab({ stats, activities }: OverviewTabProps) {
+export function CommunityOverviewTab({ community }: OverviewTabProps) {
+    const isInactive = community?.is_suspended || community?.status === 'in-active' || community?.is_deleted;
+
     const statsCards = [
         {
             eclipse: AppIcons.eclipseRed, icon: AppIcons.usersRed,
             label: "Members",
-            value: stats?.flaggedPosts || 0,
-            subLabel: "Total members in this community"
+            value: community?.members_count || 0,
+            subLabel: "Total community members"
         },
         {
             eclipse: AppIcons.eclipseGreen, icon: AppIcons.usersgroupGreen,
-            label: "Posts This Month",
-            value: stats?.flaggedComments || 0,
-            subLabel: "Total posts this month"
+            label: "Status",
+            value: isInactive ? 'Inactive' : 'Active',
+            subLabel: "Current community status"
 
         },
         {
             eclipse: AppIcons.eclipseBlue, icon: AppIcons.messageMultipleBlue,
-            label: "Pending Reviews",
-            value: stats?.itemsInReview || 0,
-            subLabel: "Number of posts under reviews"
+            label: "Visibility",
+            value: community?.visibility || 'Public',
+            subLabel: "Community visibility"
         },
 
     ];
 
-    const getActivityIcon = (action: string) => {
-        if (action.toLowerCase().includes("comment")) return "💬";
-        if (action.toLowerCase().includes("edit")) return "✏️";
-        if (action.toLowerCase().includes("delete")) return "🗑️";
-        if (action.toLowerCase().includes("flag")) return "🚩";
-        return "•";
-    };
+
 
     return (
         <div className="flex flex-col gap-4 pt-6">
@@ -60,26 +58,25 @@ export function CommunityOverviewTab({ stats, activities }: OverviewTabProps) {
                 {/* Header */}
                 <div className="flex gap-4 items-center">
                     <img
-                        src="https://i.pravatar.cc/100?img=12"
-                        alt="Community avatar"
+                        src={community?.image || `https://i.pravatar.cc/100?img=${community?.id || 12}`}
+                        alt="Community image"
                         className="h-20 w-20 rounded-full object-cover"
                     />
 
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
                             <h1 className="text-[19px] font-semibold text-[#0A0D14]">
-                                Creative Minds Lounge
+                                {community?.title || 'N/A'}
                             </h1>
 
                             <span className="flex items-center gap-2 rounded-[8px] border border-[#E8E8E8] px-3 py-1 text-[13px] font-medium text-[#667085]">
-                                <span className="h-2 w-2 rounded-[2px] bg-[#12B76A]" />
-                                Active
+                                <span className={`h-2 w-2 rounded-[2px] ${!isInactive ? 'bg-[#12B76A]' : 'bg-[#F2994E]'}`} />
+                                {isInactive ? 'Inactive' : 'Active'}
                             </span>
                         </div>
 
                         <p className="max-w-[720px] text-[14px] leading-[22px] text-[#667085]">
-                            A space for designers, writers, and builders to share ideas,
-                            exchange feedback, and collaborate on exciting projects.
+                            {community?.desc || 'No description available'}
                         </p>
                     </div>
                 </div>
@@ -88,9 +85,9 @@ export function CommunityOverviewTab({ stats, activities }: OverviewTabProps) {
                 <div className="flex flex-col gap-3 text-[13px] text-[#667085]">
                     <div className="flex items-center gap-2">
                         <img src={AppIcons.dashboard} alt="" />
-                        <span>Category:</span>
+                        <span>Code:</span>
                         <span className="font-medium text-[#344054]">
-                            Art and Design
+                            {community?.code || 'N/A'}
                         </span>
                     </div>
 
@@ -98,62 +95,35 @@ export function CommunityOverviewTab({ stats, activities }: OverviewTabProps) {
                         <img src={AppIcons.eyeOpen} alt="" />
                         <span>Visibility:</span>
                         <span className="font-medium text-[#344054]">
-                            Public
+                            {community?.visibility || 'N/A'}
                         </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <img src={AppIcons.calendar} alt="" />
-                        <span>Created On:</span>
+                        <span>Created:</span>
                         <span className="font-medium text-[#344054]">
-                            March 14, 2024
+                            {community?.createdAt ? new Date(community.createdAt).toLocaleDateString() : 'N/A'}
                         </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <img src={AppIcons.user} alt="" />
-                        <span>Admin:</span>
-                        <div className="flex items-center gap-2 rounded-full border border-[#E8E8E8] px-2 py-1">
-                            <img
-                                src="https://i.pravatar.cc/100?img=32"
-                                alt="Admin"
-                                className="h-5 w-5 rounded-full"
-                            />
-                            <span className="font-medium text-[#344054]">
-                                Audrey Merlin
-                            </span>
-                        </div>
+                        <span>Safe Space:</span>
+                        <span className="font-medium text-[#344054]">
+                            {community?.is_safe_space ? 'Yes' : 'No'}
+                        </span>
                     </div>
-
                     <div className="flex items-center gap-2">
                         <img src={AppIcons.users} alt="" />
-                        <span>Moderators:</span>
-                        <div className="flex gap-2">
-                            <div className="flex items-center gap-2 rounded-full border border-[#E8E8E8] px-2 py-1">
-                                <img
-                                    src="https://i.pravatar.cc/100?img=45"
-                                    alt="Moderator"
-                                    className="h-5 w-5 rounded-full"
-                                />
-                                <span className="font-medium text-[#344054]">
-                                    Dana Cole
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2 rounded-full border border-[#E8E8E8] px-2 py-1">
-                                <img
-                                    src="https://i.pravatar.cc/100?img=52"
-                                    alt="Moderator"
-                                    className="h-5 w-5 rounded-full"
-                                />
-                                <span className="font-medium text-[#344054]">
-                                    Marcus Grey
-                                </span>
-                            </div>
-                        </div>
+                        <span>Member Screening:</span>
+                        <span className="font-medium text-[#344054]">
+                            {community?.is_member_screening ? 'Yes' : 'No'}
+                        </span>
                     </div>
                 </div>
             </section>
+
             <h2 className="mb-4 text-[14px] font-normal text-[#0A0D14] border-b border-t border-[#E8E8E8] w-full py-4">
                 <div className="pl-6">
                     Stats Overview

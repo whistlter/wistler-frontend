@@ -1,5 +1,4 @@
 import { BUTTON_TYPE } from "@/components/button/constants";
-import type { FilterOption } from "@/components/filter/types";
 import { useModal } from "@/components/modal";
 import { ActionModal } from "@/components/modal/actionModal";
 import { Pagination } from "@/components/pagination/Pagination";
@@ -30,9 +29,11 @@ export function FlaggedTab() {
     const { data, isLoading, isError, error } = useFlaggedContent(page, PAGE_SIZE, searchTerm);
 
     // Reset to page 1 when search term changes
-    useEffect(() => {
+    const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+    if (prevSearchTerm !== searchTerm) {
+        setPrevSearchTerm(searchTerm);
         setPage(1);
-    }, [searchTerm]);
+    }
 
     /* ----------------------------
        ROWS
@@ -171,28 +172,28 @@ export function FlaggedTab() {
         {
             label: ActionType.TAKE_DOWN,
             icon: Appicon.achiveArrowDown,
-            onClick: (row) => takeDownFn(),
+            onClick: () => takeDownFn(),
         },
         {
             label: ActionType.MOVE_TO_REVIEW,
             icon: Appicon.propertySearch,
-            onClick: (row) => moveToReviewFn(),
+            onClick: () => moveToReviewFn(),
         },
         {
             label: ActionType.BAN_USER,
             icon: Appicon.exclamationGray,
-            onClick: (row) => banUserFn(),
+            onClick: () => banUserFn(),
         },
         {
             label: ActionType.SHADOW_BAN,
             icon: Appicon.eyeClosed,
-            onClick: (row) => shadowBanUserFn(),
+            onClick: () => shadowBanUserFn(),
         },
         {
             label: ActionType.SUSPEND_USER,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: (row) => suspendUserFn(),
+            onClick: () => suspendUserFn(),
         },
     ];
 
@@ -202,18 +203,10 @@ export function FlaggedTab() {
     if (isError) {
         return (
             <div className="rounded-lg border p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load flagged content"}
+                {(error as Error)?.message ?? "Failed to load flagged content"}
             </div>
         );
     }
-    const filterOptions: FilterOption[] = [
-        {
-            label: "Reason",
-            value: "reason",
-            icon: <span>👤</span>,
-        },
-    ];
-
     /* ----------------------------
        RENDER
     ---------------------------- */

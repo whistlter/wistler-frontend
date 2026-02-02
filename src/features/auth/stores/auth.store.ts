@@ -12,6 +12,7 @@ export type AuthUser = {
   name: string;
   first_name: string;
   last_name: string;
+  image?: string;
 };
 
 type AuthState = {

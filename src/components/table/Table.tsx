@@ -20,7 +20,7 @@ type TableProps<T> = {
 };
 
 export function Table<T extends {
-    status: any; id: string | number
+    status: string; id: string | number
 }>({
     data,
     columns,
@@ -333,33 +333,41 @@ export function Table<T extends {
                         style={dropdownStyle}
                         className="rounded-lg border border-gray-200 bg-white shadow-xl"
                     >
-                        {actions.map((action, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => {
-                                    const actualId = typeof openDropdown === 'string'
-                                        ? openDropdown.replace(/^(desktop|mobile)-/, '')
-                                        : openDropdown;
-                                    const row = data.find(r => String(r.id) === String(actualId));
-                                    if (row) {
-                                        action.onClick(row);
-                                        setOpenDropdown(null);
-                                    }
-                                }}
-                                className={`flex w-[95%] items-center gap-3 px-4 m-1 py-2 text-left text-[13px]transition-colors cursor-pointer ${action.danger
-                                    ? "flex  items-center cursor-pointer gap-3 rounded-lg px-2 py-2 text-[13px] text-red-700  hover:bg-red-50"
-                                    : "flex  items-center cursor-pointer gap-3 rounded-lg px-2 py-2 text-[13px]text-gray-700 hover:bg-gray-100"
-                                    } ${idx !== actions.length - 1 ? "flex  items-center cursor-pointer gap-3 rounded-lg px-2 py-2 text-[13px] text-gray-700 hover:bg-gray-100" : ""} ${idx === 0 ? "rounded-t-lg" : ""
-                                    } ${idx === actions.length - 1 ? "rounded-b-lg" : ""}`}
-                            >
-                                {action.icon && typeof action.icon === "string" ? (
-                                    <img src={action.icon} alt="" className="h-4 w-4" />
-                                ) : (
-                                    action.icon
-                                )}
-                                <span>{action.label}</span>
-                            </button>
-                        ))}
+                        {actions.map((action, idx) => {
+                            const actualId = typeof openDropdown === 'string'
+                                ? openDropdown.replace(/^(desktop|mobile)-/, '')
+                                : openDropdown;
+                            const row = data.find(r => String(r.id) === String(actualId));
+
+                            // Use dynamic properties if available, otherwise fall back to static
+                            const label = row && action.getLabel ? action.getLabel(row) : action.label;
+                            const icon = row && action.getIcon ? action.getIcon(row) : action.icon;
+                            const isDanger = row && action.getDanger ? action.getDanger(row) : action.danger;
+
+                            return (
+                                <button
+                                    key={idx}
+                                    onClick={() => {
+                                        if (row) {
+                                            action.onClick(row);
+                                            setOpenDropdown(null);
+                                        }
+                                    }}
+                                    className={`flex w-[95%] items-center gap-3 px-4 m-1 py-2 text-left text-[13px]transition-colors cursor-pointer ${isDanger
+                                        ? "flex  items-center cursor-pointer gap-3 rounded-lg px-2 py-2 text-[13px] text-red-700  hover:bg-red-50"
+                                        : "flex  items-center cursor-pointer gap-3 rounded-lg px-2 py-2 text-[13px]text-gray-700 hover:bg-gray-100"
+                                        } ${idx !== actions.length - 1 ? "flex  items-center cursor-pointer gap-3 rounded-lg px-2 py-2 text-[13px] text-gray-700 hover:bg-gray-100" : ""} ${idx === 0 ? "rounded-t-lg" : ""
+                                        } ${idx === actions.length - 1 ? "rounded-b-lg" : ""}`}
+                                >
+                                    {icon && typeof icon === "string" ? (
+                                        <img src={icon} alt="" className="h-4 w-4" />
+                                    ) : (
+                                        icon
+                                    )}
+                                    <span>{label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </Portal>
             )}

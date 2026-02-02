@@ -3,6 +3,7 @@ import { FormInput } from "@/components/inputs/FormInput";
 import { INPUT_TYPES } from "@/components/inputs/constants";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { Button } from "@/components/button/Button";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 
 // ----------------------
 // Page
@@ -15,7 +16,7 @@ function CreateNewPassword() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showErrorToast("Validation Error", "Passwords do not match");
       return;
     }
 
@@ -24,6 +25,7 @@ function CreateNewPassword() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
+      showSuccessToast("Password Updated", "Your password has been successfully updated.");
     }, 1000);
   };
 
