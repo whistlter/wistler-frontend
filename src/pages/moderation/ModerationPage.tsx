@@ -24,7 +24,7 @@ export default function ModerationPage() {
     if (isError) {
         return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
-                {(error as any)?.message ?? "Failed to load moderation data"}
+                {(error as Error)?.message ?? "Failed to load moderation data"}
             </div>
         );
     }
