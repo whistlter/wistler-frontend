@@ -15,82 +15,9 @@ type ActivityItem = {
     time: string;
 };
 
-// Mock data for now - replace with actual API hook
-const mockUserActivities: ActivityItem[] = [
-    {
-        id: 1,
-        type: "user_joined",
-        title: "User Joined Community",
-        description: "Tara Brooks joined Creative Minds Lounge",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 2,
-        type: "role_changed",
-        title: "User Role Changed",
-        description: "Leo Walker's role was changed from member to moderator in Side Hustlers Hub.",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 3,
-        type: "user_suspended",
-        title: "User Suspended",
-        description: "Jonah Peters was suspended due to repeated violations of community guidelines.",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 4,
-        type: "user_banned",
-        title: "User Banned",
-        description: "Ava Martinez was permanently banned from the platform",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 5,
-        type: "user_shadowbanned",
-        title: "User Shadowbanned",
-        description: "Marcus Grey was shadowbanned. Their content is no longer visible to others.",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 6,
-        type: "password_reset",
-        title: "Password Reset Sent",
-        description: "Password reset instructions were sent to Leo Walker",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 7,
-        type: "user_removed",
-        title: "User Removed From Community",
-        description: "Tara Brooks was removed from Book Haven by an administrator.",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-];
-
-const mockCommunityActivities: ActivityItem[] = [
-    {
-        id: 1,
-        type: "community_created",
-        title: "Community Created",
-        description: "Creative Minds Lounge was created by Admin",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 2,
-        type: "community_suspended",
-        title: "Community Suspended",
-        description: "Tech Innovators Hub was suspended for policy violations",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-    {
-        id: 3,
-        type: "community_deleted",
-        title: "Community Deleted",
-        description: "Old Projects Archive was permanently deleted",
-        time: "Oct 20, 2025, 10:42 AM",
-    },
-];
+// Mock data removed. Replace with actual API hook.
+const mockUserActivities: ActivityItem[] = [];
+const mockCommunityActivities: ActivityItem[] = [];
 
 export default function ActivityLogs() {
     const [activeTab, setActiveTab] = useState<Tab>("Users");

@@ -370,7 +370,7 @@ export default function Communities() {
                     close={close}
                     isPending={isCreating}
                     onSubmit={(data) => {
-                        createCommunity(data, {
+                        createCommunity(data as unknown as import("@/features/communities/hooks/useCommunity").CreateCommunityPayload, {
                             onSuccess: () => {
                                 showSuccessToast("Community Created", "New community has been successfully created.");
                                 close();

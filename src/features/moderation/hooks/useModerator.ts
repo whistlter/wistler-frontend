@@ -1,6 +1,6 @@
 import { useGet } from "@/hooks/useApi";
-import type { ModerationActivityApi, ModerationStatsApi } from "@/mocks/moderator.mock";
-import type { FlaggedContentApi, ReviewQueueApi } from "../types/moderation.types";
+
+import type { FlaggedContentApi, ReviewQueueApi, ModerationActivityApi, ModerationStatsApi } from "../types/moderation.types";
 
 export interface PaginatedFlaggedContent {
   data: FlaggedContentApi[];

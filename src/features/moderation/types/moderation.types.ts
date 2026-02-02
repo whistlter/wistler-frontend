@@ -1,4 +1,21 @@
 // src/dto/user-row.dto.ts
+
+export type ModerationStatsApi = {
+    flagged_posts: number;
+    flagged_comments: number;
+    items_in_review: number;
+    user_reports: number;
+};
+
+export type ModerationActivityApi = {
+    id: number | string;
+    type: string;
+    action: string;
+    title: string;
+    description: string;
+    time: string;
+};
+
 export type ModeratorRowDTO = {
     id: number;
     name: string;
