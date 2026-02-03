@@ -5,11 +5,14 @@ import { StatCardsRow } from "./components/StatCardsRow";
 import { Button } from "@/components/button/Button";
 import { useModal } from "@/components/modal";
 import { useCreateCommunity } from "@/features/communities";
-import { CreateCommunityModal } from "./components/CreateCommunityModal";
+import { CommunityForm } from "@/features/communities/components/CommunityForm";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
 
 export default function DashboardPage() {
   const { openModal, } = useModal();
   const Appicon = { ...AppIcons }
+  const { mutate: createCommunity, isPending: isCreating } = useCreateCommunity();
+
   const stats = {
     totalUsers: 344,
     activeUsers: 344,
@@ -40,12 +43,27 @@ export default function DashboardPage() {
     flaggedContent: 344,
     shadowbannedUsers: 344,
   };
-  useCreateCommunity();
 
   const openCreateComunityModal = () => {
     openModal(
       ({ close }) => (
-        <CreateCommunityModal close={close} />
+        <CommunityForm
+          title="Create Community"
+          close={close}
+          isPending={isCreating}
+          onSubmit={(data) => {
+            createCommunity(data, {
+              onSuccess: () => {
+                showSuccessToast("Community Created", "Community has been successfully created.");
+                close();
+              },
+              onError: (err) => {
+                showErrorToast("Creation Failed", "Failed to create community.");
+                console.error(err);
+              }
+            });
+          }}
+        />
       ), { type: 'side', width: 'w-[500px]' })
   }
 

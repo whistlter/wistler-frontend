@@ -176,7 +176,6 @@ export default function Users() {
             value: "status",
             icon: AppIcons.lightning,
             subOptions: [
-                { label: "All", value: "all", isSelected: statusFilter === 'all' },
                 { label: "Active", value: "active", isSelected: statusFilter === 'active' },
                 { label: "Blocked", value: "blocked", isSelected: statusFilter === 'blocked' },
             ]
