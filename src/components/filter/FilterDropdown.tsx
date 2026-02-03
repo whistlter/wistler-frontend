@@ -169,6 +169,9 @@ export function FilterDropdown({
               style={submenuStyle}
               className="rounded-xl bg-white p-2 shadow-xl"
             >
+              <div className="px-4 py-3 text-[15px] font-medium text-[#0A0D14] border-b border-[#F5F5F5] mb-2">
+                {options.find((opt) => opt.value === activeSubmenu)?.label}
+              </div>
               {options
                 .find((opt) => opt.value === activeSubmenu)
                 ?.subOptions?.map((subOption) => (
@@ -186,14 +189,14 @@ export function FilterDropdown({
                     <div className="flex items-center gap-3">
                       {/* Radio/Checkbox indicator */}
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${subOption.isSelected
-                          ? 'border-[#7F56D9] bg-[#7F56D9]'
-                          : 'border-[#D0D5DD]'
+                        ? 'border-[#E31C5F] bg-[#E31C5F]'
+                        : 'border-[#D0D5DD]'
                         }`}>
                         {subOption.isSelected && (
                           <div className="w-2 h-2 bg-white rounded-full" />
                         )}
                       </div>
-                      <span className={`text-sm font-medium ${subOption.isSelected ? 'text-[#7F56D9]' : 'text-[#344054]'
+                      <span className={`text-sm font-medium ${subOption.isSelected ? 'text-[#E31C5F]' : 'text-[#344054]'
                         }`}>
                         {subOption.label}
                       </span>

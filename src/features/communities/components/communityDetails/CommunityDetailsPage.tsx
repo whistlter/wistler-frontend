@@ -171,22 +171,22 @@ export default function CommunityDetailsPage() {
             <ActionModal
                 close={close}
                 icon={{
-                    eclipse: AppIcons.eclipseRed,
-                    icon: AppIcons.delete_red
+                    eclipse: AppIcons.eclipseYellow,
+                    icon: AppIcons.warningYellow
                 }}
-                title="Delete this community"
-                description="Are you sure you want to delete this community? This action will remove the community and all its content. Members will lose access immediately."
-                primaryLabel={ActionType.DELETE_COMMUNITY}
+                title="Delete community"
+                description={`Are you sure you want to delete ${community?.title || 'this community'}? This action will remove the community, all posts, comments, and member data associated with it. Once deleted, this community cannot be recovered.`}
+                primaryLabel="Delete community"
                 primaryIntent="danger"
                 showLoader
-                buttonVariant={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
                     if (!id) return;
                     try {
                         await softDeleteCommunity(id);
                         showSuccessToast("Community Deleted", "The community has been deleted successfully.");
                         close();
-                        navigate('/community');
+                        navigate('/communities');
                     } catch (error) {
                         console.error("Failed to delete community:", error);
                         showErrorToast("Deletion Failed", "Failed to delete the community. Please try again.");
@@ -253,7 +253,7 @@ export default function CommunityDetailsPage() {
                     <div className={` flex ${activeTab === "overview" ? 'lg:py-6' : 'justify-end w-full gap-6 lg:py-6'}  `}>
                         <div className="flex gap-3 lg:ml-auto w-full lg:w-[70%]">
                             {(community.is_suspended || community.status === 'in-active' || community.is_deleted) ? (
-                                <Button leftIcon={AppIcons.usersgroupGreen} variant={BUTTON_TYPE.TETIARY} onClick={() => activateCommunityFn()}>
+                                <Button leftIcon={AppIcons.usersgroupGreen} variant={BUTTON_TYPE.TETIARY} onClick={() => activateCommunityFn()} className="!text-[#0A0D14] hover:!bg-gray-50">
                                     {ActionType.ACTIVATE_COMMUNITY}
                                 </Button>
                             ) : (

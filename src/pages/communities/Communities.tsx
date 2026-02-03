@@ -2,12 +2,9 @@ import { Button } from "@/components/button/Button";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { FilterDropdown } from "@/components/filter/FilterDropdown";
 import type { FilterOption } from "@/components/filter/types";
-import { INPUT_TYPES } from "@/components/inputs/constants";
-import { FormInput } from "@/components/inputs/FormInput";
 import { useModal } from "@/components/modal";
 import { ActionModal, DateRangeModal } from "@/components/modal";
 import { Pagination } from "@/components/pagination/Pagination";
-import { SelectComponent } from "@/components/select/selectComponent";
 import { COMMUNITY_TABLE_VARIANTE } from "@/components/table/enum/TableEnum";
 import { Table } from "@/components/table/Table";
 import type { TableAction, TableColumn } from "@/components/table/types";
@@ -18,146 +15,10 @@ import { mapCommunityToRowDTO, type CommunitiesRowDTO } from "@/features/communi
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCommunities, useCreateCommunity, useUpdateCommunity, useSuspendCommunity, useActivateCommunity, useSoftDeleteCommunity } from "@/features/communities";
-import FileUpload from "@/components/fileUpload/upload";
 import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { CommunityForm } from "@/features/communities/components/CommunityForm";
 
-interface CommunityFormData {
-    Community_Name?: string;
-    description?: string;
-    category?: string;
-    Visibility?: string;
-    visibility?: string;
-    owner?: string;
-}
-
-interface CommunityFormProps {
-    initialData?: CommunityFormData;
-    close: () => void;
-    onSubmit: (data: Record<string, unknown>) => void;
-    isPending: boolean;
-    title: string;
-}
-
-function CommunityForm({ initialData, close, onSubmit, isPending, title }: CommunityFormProps) {
-    const [name, setName] = useState(initialData?.Community_Name || "");
-    const [description, setDescription] = useState(initialData?.description || "");
-    const [category, setCategory] = useState(initialData?.category || "");
-    const [visibility, setVisibility] = useState(initialData?.Visibility || initialData?.visibility || "Public");
-    const [owner, setOwner] = useState(initialData?.owner || "");
-    const [image, setImage] = useState<File | null>(null);
-
-    // Map category to interest_id
-    const categoryToInterestId: Record<string, string> = {
-        'Technology': '7',
-        'Business': '8',
-        'Lifestyle': '9',
-        'Education': '10',
-    };
-
-    // Map owner to user_id
-    const ownerToUserId: Record<string, string> = {
-        'User 1': '1',
-        'User 2': '2',
-        'User 3': '3',
-    };
-
-    const handleSubmit = () => {
-        if (!name.trim()) {
-            showErrorToast("Validation Error", "Community name is required");
-            return;
-        }
-        // Map UI fields to API payload format
-        onSubmit({
-            title: name,
-            desc: description,
-            interest_id: categoryToInterestId[category] || '',
-            visibility: visibility.toLowerCase(),
-            is_safe_space: 'no',
-            is_member_screening: 'no',
-            can_post_anonymously: 'no',
-            user_id: ownerToUserId[owner] || '1',
-            image: image,
-        });
-    };
-
-    return (
-        <div className="flex h-full flex-col bg-white">
-            <div className="shrink-0 border-b border-[#E8E8E8] px-6 py-5 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">{title}</h2>
-                <button onClick={close} className="cursor-pointer">
-                    <img src={AppIcons.x} alt="Close" />
-                </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-                <div>
-                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Community Name</label>
-                    <FormInput
-                        placeholder="Enter name"
-                        type={INPUT_TYPES.TEXT}
-                        value={name}
-                        onChange={setName}
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Description</label>
-                    <FormInput
-                        placeholder="Enter description"
-                        type={INPUT_TYPES.TEXTAREA}
-                        value={description}
-                        onChange={setDescription}
-                    />
-                </div>
-
-                <div>
-                    <label className="text-[13px] font-medium text-gray-700 mb-2">Category</label>
-                    <SelectComponent
-                        data={['Technology', 'Business', 'Lifestyle', 'Education']}
-                        placeholder="Select"
-                        value={category}
-                        onChange={(val) => setCategory(val as string)}
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Image</label>
-                    <FileUpload onFileSelect={setImage} />
-                </div>
-
-                <div>
-                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Visibility</label>
-                    <SelectComponent
-                        data={['Public', 'Private']}
-                        placeholder="Select Visibility"
-                        value={visibility}
-                        onChange={(val) => setVisibility(val as string)}
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Owner Assignment</label>
-                    <p className="text-[13px] text-[#969696] mb-2">Select a user to own and manage this community.</p>
-                    <SelectComponent
-                        data={['User 1', 'User 2', 'User 3']}
-                        placeholder="Select User"
-                        value={owner}
-                        onChange={(val) => setOwner(val as string)}
-                    />
-                </div>
-            </div>
-
-            <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">
-                <div className="flex gap-3">
-                    <Button onClick={close} variant={BUTTON_TYPE.SECONDARY}>Cancel</Button>
-                    <Button onClick={handleSubmit} loading={isPending}>
-                        {initialData ? "Update Community" : "Create Community"}
-                    </Button>
-                </div>
-            </div>
-        </div>
-    );
-}
+// CommunityForm extracted to src/features/communities/components/CommunityForm.tsx
 
 
 interface EditCommunityModalProps {
@@ -330,23 +191,23 @@ export default function Communities() {
         ));
     }
 
-    const deleteCommunityFn = (communityId: number) => {
+    const deleteCommunityFn = (communityId: number, communityName: string) => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
                 icon={{
-                    eclipse: AppIcons.eclipseRed,
-                    icon: AppIcons.delete_red
+                    eclipse: AppIcons.eclipseYellow,
+                    icon: AppIcons.warningYellow
                 }}
-                title="Delete this community"
-                description="Are you sure you want to delete this community? This action will remove the community and all its content. Members will lose access immediately."
-                primaryLabel={ActionType.DELETE_COMMUNITY}
+                title="Delete community"
+                description={`Are you sure you want to delete ${communityName}? This action will remove the community, all posts, comments, and member data associated with it. Once deleted, this community cannot be recovered.`}
+                primaryLabel="Delete community"
                 primaryIntent="danger"
                 showLoader
-                buttonVariant={BUTTON_TYPE.TETIARY}
+                buttonVariant={BUTTON_TYPE.PRIMARY}
                 onPrimaryAction={async () => {
                     try {
-                        await softDeleteCommunity(communityId);
+                        await softDeleteCommunity(communityId.toString());
                         showSuccessToast("Community Deleted", "The community has been successfully deleted.");
                         close();
                     } catch (error) {
@@ -426,7 +287,7 @@ export default function Communities() {
             label: ActionType.DELETE_COMMUNITY,
             icon: Appicon.delete_red,
             danger: true,
-            onClick: (row) => deleteCommunityFn(row.id),
+            onClick: (row) => deleteCommunityFn(row.id, row.Community_Name),
         },
     ];
 
@@ -446,9 +307,8 @@ export default function Communities() {
             value: "status",
             icon: AppIcons.lightning,
             subOptions: [
-                { label: "All", value: "all", isSelected: statusFilter === 'all' },
                 { label: "Active", value: "active", isSelected: statusFilter === 'active' },
-                { label: "Deactivate", value: "deactivate", isSelected: statusFilter === 'deactivate' },
+                { label: "Inactive", value: "deactivate", isSelected: statusFilter === 'deactivate' },
             ]
         },
         {
