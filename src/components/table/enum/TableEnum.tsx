@@ -1,6 +1,8 @@
 export const USER_TABLE_VARIANTE = {
     NAME: "name",
     NAME_HEADER: 'Name',
+    USERNAME: 'username',
+    USERNAME_HEADER: 'Username',
     EMAIL: 'email',
     EMAIL_HEADER: 'Email',
     COMMUNITIES: 'communities',

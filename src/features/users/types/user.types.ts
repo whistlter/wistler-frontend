@@ -4,6 +4,7 @@ import { formatDate } from "@/utils/helper";
 export type UserRowDTO = {
     id: number;
     name: string;
+    username: string;
     email: string;
     communities: number;
     status: string;
@@ -112,6 +113,7 @@ export function mapUserToRowDTO(user: UserApi): UserRowDTO {
     return {
         id: user.id,
         name: `${user.first_name} ${user.last_name}`,
+        username: user.username,
         email: user.email,
         communities: user.myCommunityCount,
         status: user.status,
@@ -122,6 +124,8 @@ export function mapUserToRowDTO(user: UserApi): UserRowDTO {
 
 export type UserCommunityRowDTO = {
     id: number;
+    communityId: number;
+    userId: number;
     name: string;
     role: string;
     status: string;
@@ -131,6 +135,8 @@ export type UserCommunityRowDTO = {
 export function mapUserCommunityToRowDTO(comm: UserCommunityApi): UserCommunityRowDTO {
     return {
         id: comm.id,
+        communityId: comm.community_id,
+        userId: comm.user_id,
         name: comm.community.title,
         role: comm.is_owner ? "Owner" : "Member",
         status: comm.status,

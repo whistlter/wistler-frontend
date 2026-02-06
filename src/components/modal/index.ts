@@ -2,6 +2,7 @@ export * from './Modal';
 export * from './ModalContainer';
 export * from './ModalDemo';
 export * from './actionModal';
+export * from './ProfileModal';
 export * from './DateRangeModal';
 export * from './StatusFilterModal';
 export * from './IndustryFilterModal';

@@ -11,12 +11,16 @@ import { useSearchStore } from "@/stores/searchStore";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { mapCommunityMembersToRowDTO, type CommunitiesMembersRowDTO } from "@/features/communities/types/communityMember.types";
-import { useCommunitiesMembers } from "@/features/communities/hooks/useCommunityMembers";
+import { useCommunitiesMembers, useRemoveUserFromCommunity } from "@/features/communities/hooks/useCommunityMembers";
+import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function CommunityMembers() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { openModal, } = useModal();
+    const queryClient = useQueryClient();
+    const { mutateAsync: removeUser } = useRemoveUserFromCommunity();
 
     const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
@@ -42,7 +46,7 @@ export function CommunityMembers() {
     /* ----------------------------
        ROWS
     ---------------------------- */
-    const members = data?.payload?.members || [];
+    const members = data?.payload?.communityMember || [];
     const rows: CommunitiesMembersRowDTO[] = members.map(mapCommunityMembersToRowDTO);
 
     const totalPages = data?.payload?.meta ? Math.ceil(data.payload.meta.total / PAGE_SIZE) : 1;
@@ -80,28 +84,28 @@ export function CommunityMembers() {
     /* ----------------------------
        ACTIONS
     ---------------------------- */
-    const changeUserRoleFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseRed,
-                    icon: AppIcons.userRed
-                }}
-                title="Update user role"
-                description="Choose the new role for this user. Their permissions will update immediately."
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.UPDATE_ROLE}
-                primaryIntent="danger"
-                showLoader
-                buttonVariant={BUTTON_TYPE.PRIMARY}
-                onPrimaryAction={async () => {
+    // const changeUserRoleFn = () => {
+    //     openModal(({ close }) => (
+    //         <ActionModal
+    //             close={close}
+    //             icon={{
+    //                 eclipse: AppIcons.eclipseRed,
+    //                 icon: AppIcons.userRed
+    //             }}
+    //             title="Update user role"
+    //             description="Choose the new role for this user. Their permissions will update immediately."
+    //             primaryLabel={ActionType.UPDATE_ROLE}
+    //             primaryIntent="danger"
+    //             showLoader
+    //             buttonVariant={BUTTON_TYPE.PRIMARY}
+    //             onPrimaryAction={async () => {
+    //
+    //             }}
+    //         />
+    //     ));
+    // }
 
-                }}
-            />
-        ));
-    }
-    const removeUserFn = () => {
+    const removeUserFn = (row: CommunitiesMembersRowDTO) => {
         openModal(({ close }) => (
             <ActionModal
                 close={close}
@@ -110,34 +114,43 @@ export function CommunityMembers() {
                     icon: AppIcons.warningYellow
                 }}
                 title="Remove user from community"
-                description="This user will lose access to this community and its content. They can rejoin later if needed."
-                // warningText="All posts and members will be permanently removed."
+                description={`Are you sure you want to remove ${row.name} from this community? They will lose access to all community content.`}
                 primaryLabel={ActionType.REMOVE_USER}
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.TETIARY}
                 onPrimaryAction={async () => {
-
+                    if (!id) return;
+                    try {
+                        await removeUser(id, row.id);
+                        showSuccessToast("User Removed", `${row.name} has been removed from the community.`);
+                        queryClient.invalidateQueries({ queryKey: ['communities', id, 'members'] });
+                        close();
+                    } catch (error) {
+                        console.error("Failed to remove user:", error);
+                        showErrorToast("Removal Failed", "Failed to remove the user. Please try again.");
+                    }
                 }}
             />
         ));
     }
+
     const actions: TableAction<CommunitiesMembersRowDTO>[] = [
         {
             label: ActionType.VIEW_PROFILE,
             icon: Appicon.eyeOpen,
             onClick: (row) => navigate(`/users/Details/${row.id}`),
         },
-        {
-            label: ActionType.CHANGE_ROLE,
-            icon: Appicon.user,
-            onClick: () => changeUserRoleFn(),
-        },
+        // {
+        //     label: ActionType.CHANGE_ROLE,
+        //     icon: Appicon.user,
+        //     onClick: () => changeUserRoleFn(),
+        // },
         {
             label: ActionType.REMOVE_USER,
             icon: Appicon.unavailable,
             danger: true,
-            onClick: () => removeUserFn(),
+            onClick: (row) => removeUserFn(row),
         }
     ];
 

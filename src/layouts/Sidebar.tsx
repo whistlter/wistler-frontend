@@ -2,9 +2,9 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, MessageSquare, Flag, Settings, LogOut } from 'lucide-react';
 import { useAuthUser, useLogoutAction } from '@/features/auth/stores/auth.store';
 import { AppIcons } from '@/constants/constant';
-import { ActionType } from '@/constants/actions';
 import { BUTTON_TYPE } from '@/components/button/constants';
 import { ActionModal } from '@/components/modal/actionModal';
+import { ProfileModal } from '@/components/modal/ProfileModal';
 import { ChangePasswordModal } from '@/components/modal/ChangePasswordModal';
 import { useModal } from '@/components/modal';
 import { showSuccessToast } from "@/components/common/toastUtils";
@@ -52,9 +52,9 @@ const Sidebar = () => {
                     icon: AppIcons.warningYellow
                 }}
                 title="User Logout"
-                description={`Are you sure you want to log out of your account? You’ll need to sign in again to continue.`}
-                // warningText="All posts and members will be permanently removed."
-                primaryLabel={ActionType.LOGOUT}
+                description={`Are you sure you want to log out of your account? You'll need to sign in again to continue.`}
+                secondaryLabel="No, Stay"
+                primaryLabel="Yes, Logout"
                 primaryIntent="danger"
                 showLoader
                 buttonVariant={BUTTON_TYPE.PRIMARY}
@@ -103,15 +103,13 @@ const Sidebar = () => {
                         {(user?.first_name + ' ' + user?.last_name) || 'Guest User'}
                         <img src={AppIcons.edit} alt="" className="w-4 h-4 opacity-40 ml-1"
                             onClick={() => openModal(({ close }) => (
-                                <ActionModal
+                                <ProfileModal
                                     close={close}
-                                    variant="profile"
                                     image={user?.image}
                                     title={(user?.first_name + ' ' + user?.last_name) || 'Guest User'}
                                     description={user?.email || 'No email'}
                                     primaryLabel="Sign out"
                                     onPrimaryAction={logoutFnc}
-                                    buttonVariant={BUTTON_TYPE.TETIARY}
                                     body={
                                         <div className="w-full bg-[#F9FAFB] border border-[#EAECF0] rounded-lg p-2.5 flex items-center justify-between gap-3 mb-2">
                                             <div className="flex items-center gap-2 flex-1">

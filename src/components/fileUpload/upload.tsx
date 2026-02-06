@@ -3,16 +3,18 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
     onUpload?: (file: File, onProgress: (p: number) => void) => Promise<void>;
     onFileSelect?: (file: File | null) => void;
+    initialImageUrl?: string | null;
 };
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
-export default function FileUpload({ onUpload, onFileSelect }: Props) {
+export default function FileUpload({ onUpload, onFileSelect, initialImageUrl }: Props) {
     const inputRef = useRef<HTMLInputElement | null>(null);
 
-    const [preview, setPreview] = useState<string | null>(null);
+    const [preview, setPreview] = useState<string | null>(initialImageUrl || null);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [isExternalUrl, setIsExternalUrl] = useState(!!initialImageUrl);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
     const [uploading, setUploading] = useState(false);
@@ -23,9 +25,10 @@ export default function FileUpload({ onUpload, onFileSelect }: Props) {
     ---------------------------- */
     useEffect(() => {
         return () => {
-            if (preview) URL.revokeObjectURL(preview);
+            // Only revoke if it's a blob URL (not an external URL)
+            if (preview && !isExternalUrl) URL.revokeObjectURL(preview);
         };
-    }, [preview]);
+    }, [preview, isExternalUrl]);
 
     /* ----------------------------
        FILE PICKER
@@ -50,11 +53,12 @@ export default function FileUpload({ onUpload, onFileSelect }: Props) {
             return;
         }
 
-        if (preview) URL.revokeObjectURL(preview);
+        if (preview && !isExternalUrl) URL.revokeObjectURL(preview);
 
         const url = URL.createObjectURL(file);
         setPreview(url);
         setFileName(file.name);
+        setIsExternalUrl(false);
         onFileSelect?.(file);
 
         if (onUpload) {
@@ -96,11 +100,12 @@ export default function FileUpload({ onUpload, onFileSelect }: Props) {
        REMOVE IMAGE
     ---------------------------- */
     function removeImage() {
-        if (preview) URL.revokeObjectURL(preview);
+        if (preview && !isExternalUrl) URL.revokeObjectURL(preview);
         setPreview(null);
         setFileName(null);
         setProgress(0);
         setError(null);
+        setIsExternalUrl(false);
         onFileSelect?.(null);
 
         if (inputRef.current) inputRef.current.value = "";
