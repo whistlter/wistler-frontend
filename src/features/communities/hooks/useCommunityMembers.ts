@@ -5,7 +5,7 @@ import type { CommunitiesMembersApi } from '../types/communityMember.types';
 export interface PaginatedCommunityMembersResponse {
     message: string;
     payload: {
-        members: CommunitiesMembersApi[];
+        communityMember: CommunitiesMembersApi[];
         meta?: {
             total: number;
             page: number;
@@ -74,4 +74,24 @@ export function useDeleteCommunityMember(id: string) {
             console.log('Member deleted successfully');
         },
     });
+}
+
+// REMOVE user from community
+export function useRemoveUserFromCommunity() {
+    return {
+        mutateAsync: async (communityId: string, userId: number) => {
+            const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
+            const response = await fetch(`${baseUrl}/admin/community/${communityId}/remove-user/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to remove user from community');
+            }
+            return response.json();
+        },
+    };
 }

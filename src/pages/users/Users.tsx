@@ -60,6 +60,10 @@ export default function Users() {
             header: USER_TABLE_VARIANTE.NAME_HEADER,
         },
         {
+            key: USER_TABLE_VARIANTE.USERNAME,
+            header: USER_TABLE_VARIANTE.USERNAME_HEADER,
+        },
+        {
             key: USER_TABLE_VARIANTE.EMAIL,
             header: USER_TABLE_VARIANTE.EMAIL_HEADER,
         },

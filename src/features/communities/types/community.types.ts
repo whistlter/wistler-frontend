@@ -2,10 +2,13 @@
 export type CommunitiesRowDTO = {
     id: number;
     Community_Name: string;
+    description: string;
     members: string;
     visibility: string;
     status: "Active" | "in-active";
     joinedDate: string;
+    image: string | null;
+    user_id: number;
 };
 
 // src/api/types/user.api.ts - Updated to match actual API response
@@ -27,6 +30,7 @@ export type CommunitiesApi = {
     createdAt?: string;
     updatedAt?: string;
     members_count?: number;
+    myCommunityCount?: number;
 };
 
 export function mapCommunityToRowDTO(community: CommunitiesApi): CommunitiesRowDTO {
@@ -40,7 +44,8 @@ export function mapCommunityToRowDTO(community: CommunitiesApi): CommunitiesRowD
     return {
         id: community.id,
         Community_Name: community.title,
-        members: community.members_count?.toString() || "0",
+        description: community.desc || "",
+        members: (community.myCommunityCount ?? community.members_count ?? 0).toString(),
         visibility: community.visibility || "Public",
         status,
         joinedDate: community.createdAt
@@ -50,5 +55,7 @@ export function mapCommunityToRowDTO(community: CommunitiesApi): CommunitiesRowD
                 year: "numeric",
             })
             : "N/A",
+        image: community.image,
+        user_id: community.user_id,
     };
 }

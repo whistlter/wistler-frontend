@@ -37,7 +37,7 @@ export function CommunityOverviewTab({ community }: OverviewTabProps) {
         {
             eclipse: AppIcons.eclipseGreen, icon: AppIcons.usersgroupGreen,
             label: "Status",
-            value: isInactive ? 'Inactive' : 'Active',
+            value: isInactive ? 'in-active' : 'Active',
             subLabel: "Current community status"
 
         },
@@ -70,8 +70,8 @@ export function CommunityOverviewTab({ community }: OverviewTabProps) {
                             </h1>
 
                             <span className="flex items-center gap-2 rounded-[8px] border border-[#E8E8E8] px-3 py-1 text-[13px] font-medium text-[#667085]">
-                                <span className={`h-2 w-2 rounded-[2px] ${!isInactive ? 'bg-[#12B76A]' : 'bg-[#F2994E]'}`} />
-                                {isInactive ? 'Inactive' : 'Active'}
+                                <span className={`h-2 w-2 rounded-[2px] ${!isInactive ? 'bg-[#12B76A]' : 'bg-[#667085]'}`} />
+                                {isInactive ? 'in-active' : 'Active'}
                             </span>
                         </div>
 
