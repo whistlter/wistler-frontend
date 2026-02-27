@@ -122,7 +122,7 @@ export function CommunityMembers() {
                 onPrimaryAction={async () => {
                     if (!id) return;
                     try {
-                        await removeUser(id, row.id);
+                        await removeUser({ communityId: id, userId: row.id });
                         showSuccessToast("User Removed", `${row.name} has been removed from the community.`);
                         queryClient.invalidateQueries({ queryKey: ['communities', id, 'members'] });
                         close();

@@ -9,6 +9,14 @@ export type CommunitiesRowDTO = {
     joinedDate: string;
     image: string | null;
     user_id: number;
+    interest_id?: number;
+    community_interests?: Array<{
+        interest_id: number;
+        interest: {
+            id: number;
+            title: string;
+        };
+    }>;
 };
 
 // src/api/types/user.api.ts - Updated to match actual API response
@@ -20,6 +28,7 @@ export type CommunitiesApi = {
     title: string;
     desc?: string;
     visibility?: string;
+    interest_id?: number;
     is_safe_space?: boolean;
     is_member_screening?: boolean;
     can_post_anonymously?: boolean;
@@ -31,6 +40,20 @@ export type CommunitiesApi = {
     updatedAt?: string;
     members_count?: number;
     myCommunityCount?: number;
+    community_interests?: Array<{
+        id: number;
+        community_id: number;
+        interest_id: number;
+        createdAt: string;
+        updatedAt: string;
+        communityId: number;
+        interestId: number;
+        interest: {
+            id: number;
+            title: string;
+            image: string | null;
+        };
+    }>;
 };
 
 export function mapCommunityToRowDTO(community: CommunitiesApi): CommunitiesRowDTO {
@@ -57,5 +80,7 @@ export function mapCommunityToRowDTO(community: CommunitiesApi): CommunitiesRowD
             : "N/A",
         image: community.image,
         user_id: community.user_id,
+        interest_id: community.interest_id,
+        community_interests: community.community_interests,
     };
 }

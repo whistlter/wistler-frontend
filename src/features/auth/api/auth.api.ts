@@ -28,7 +28,7 @@ export interface LoginResponse {
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
-  return api.post<LoginResponse>("login", payload);
+  return api.post<LoginResponse>("admin/login", payload);
 }
 
 export async function logout(): Promise<void> {

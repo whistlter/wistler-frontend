@@ -92,7 +92,7 @@ export function UsercommunityTap() {
                 onPrimaryAction={async () => {
                     if (!userId) return;
                     try {
-                        await removeUser(row.communityId.toString(), row.userId);
+                        await removeUser({ communityId: row.communityId.toString(), userId: row.userId });
                         showSuccessToast("User Removed", `User has been removed from ${row.name}.`);
                         queryClient.invalidateQueries({ queryKey: ['users', userId, 'communities'] });
                         close();
@@ -129,7 +129,7 @@ export function UsercommunityTap() {
         {
             label: "View Community",
             icon: Appicon.eyeOpen,
-            onClick: (row) => navigate(`/users/${userId}/community/${row.id}`),
+            onClick: (row) => navigate(`/users/${userId}/community/${row.communityId}`),
         },
         // {
         //     label: "Change role",

@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, Flag, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Flag, /* Settings, */ LogOut } from 'lucide-react';
 import { useAuthUser, useLogoutAction } from '@/features/auth/stores/auth.store';
 import { AppIcons } from '@/constants/constant';
 import { BUTTON_TYPE } from '@/components/button/constants';
@@ -203,7 +203,7 @@ const Sidebar = () => {
                         </span>
                     </div>
                     <div className="space-y-1">
-                        <NavLink to={'/settings'} className={({ isActive }) => `
+                        {/* <NavLink to={'/settings'} className={({ isActive }) => `
                                             w-full flex items-center gap-2
                                             px-[12px] py-[10px]
                                             rounded-[12px]
@@ -211,7 +211,7 @@ const Sidebar = () => {
                                             ${isActive
                                 ? `
                                                 text-white
-                                                
+
                                                 bg-gradient-to-b from-white/15 to-[#999]/15
                                                 `
                                 : `
@@ -223,7 +223,7 @@ const Sidebar = () => {
                             <Settings className="w-[18px] h-[18px] text-[#9ca3af] group-hover:text-white" />
                             <span className="text-[14px] font-medium">Settings</span>
 
-                        </NavLink>
+                        </NavLink> */}
                         <button
                             onClick={logoutFnc}
                             className="w-full flex cursor-pointer items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-[#9ca3af] hover:bg-red-900/20 hover:text-red-400"
