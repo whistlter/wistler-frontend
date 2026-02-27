@@ -1,5 +1,7 @@
 // src/features/communities/hooks/useCommunityMembers.ts
 import { useGet, usePost, usePut, useDelete } from '@/hooks/useApi';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/axios';
 import type { CommunitiesMembersApi } from '../types/communityMember.types';
 
 export interface PaginatedCommunityMembersResponse {
@@ -78,20 +80,14 @@ export function useDeleteCommunityMember(id: string) {
 
 // REMOVE user from community
 export function useRemoveUserFromCommunity() {
-    return {
-        mutateAsync: async (communityId: string, userId: number) => {
-            const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
-            const response = await fetch(`${baseUrl}/admin/community/${communityId}/remove-user/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-            if (!response.ok) {
-                throw new Error('Failed to remove user from community');
-            }
-            return response.json();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ communityId, userId }: { communityId: string; userId: number }) => {
+            return api.delete(`admin/community/${communityId}/remove-user/${userId}`);
         },
-    };
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['communities'] });
+        },
+    });
 }

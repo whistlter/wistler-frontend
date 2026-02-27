@@ -97,18 +97,7 @@ export default function Communities() {
         return (communities as import("@/features/communities/types/community.types").CommunitiesApi[]).map(mapCommunityToRowDTO);
     })();
 
-    const totalPages = (() => {
-        if (!data) return 1;
-
-        // API returns pagination info in payload.meta
-        const meta = (data as { payload?: { meta?: { total?: number } } })?.payload?.meta;
-        const total = meta?.total || 0;
-
-        if (typeof total === 'number' && total > 0) {
-            return Math.ceil(total / PAGE_SIZE);
-        }
-        return 1;
-    })();
+    const totalPages = data?.payload?.meta?.totalPages ?? 1;
 
     /* ----------------------------
        COLUMNS

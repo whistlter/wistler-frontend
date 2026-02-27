@@ -7,10 +7,13 @@ import type { CommunitiesApi } from '../types/community.types';
 export interface CommunitiesResponse {
     message: string;
     payload: {
-        data: CommunitiesApi[];
-        total: number;
-        page: number;
-        pageSize: number;
+        communities: CommunitiesApi[];
+        meta: {
+            count: number;
+            totalPages: number;
+            currentPage: number;
+            perPage: number;
+        };
     };
     status: string;
 }
@@ -72,6 +75,43 @@ export function useCommunity(id: string) {
     });
 }
 
+// Interest types
+export interface Interest {
+    id: number;
+    title: string;
+    image: string | null;
+    is_deleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    sub_interests: {
+        id: number;
+        interest_id: number;
+        question: string;
+        answers: string[];
+        is_deleted: boolean;
+        createdAt: string;
+        updatedAt: string;
+        interestId: number;
+    }[];
+}
+
+export interface InterestsResponse {
+    message: string;
+    status: string;
+    payload: {
+        interests: Interest[];
+    };
+}
+
+// GET interests (categories)
+export function useInterests() {
+    return useGet<InterestsResponse>(
+        ['interests'],
+        'admin/interest',
+        { staleTime: 10 * 60 * 1000 }
+    );
+}
+
 // CREATE community payload type
 export interface CreateCommunityPayload {
     image?: File;
@@ -82,7 +122,7 @@ export interface CreateCommunityPayload {
     is_safe_space: 'yes' | 'no';
     is_member_screening: 'yes' | 'no';
     can_post_anonymously: 'yes' | 'no';
-    user_id: string;
+    user_id?: string;
 }
 
 // CREATE community
@@ -103,7 +143,9 @@ export function useCreateCommunity() {
             formData.append('is_safe_space', data.is_safe_space);
             formData.append('is_member_screening', data.is_member_screening);
             formData.append('can_post_anonymously', data.can_post_anonymously);
-            formData.append('user_id', data.user_id);
+            if (data.user_id) {
+                formData.append('user_id', data.user_id);
+            }
 
             return api.post<SingleCommunityResponse>('admin/community/create', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -164,7 +206,7 @@ export function useUpdateCommunity(id: string) {
                 formData.append('user_id', data.user_id);
             }
 
-            return api.post<SingleCommunityResponse>(`user/community/edit/${id}`, formData, {
+            return api.post<SingleCommunityResponse>(`admin/community/edit/${id}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
         },

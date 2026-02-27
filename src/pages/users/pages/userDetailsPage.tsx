@@ -72,16 +72,16 @@ export default function UserDetailsPage() {
     }
 
     const dropdownOptions: dropdownOption[] = [
-        {
-            label: ActionType.SHADOW_BAN_USER,
-            value: ActionType.SHADOW_BAN_USER,
-            icon: AppIcons.eyeClosed,
-        },
-        {
-            label: ActionType.BAN_USER,
-            value: ActionType.BAN_USER,
-            icon: AppIcons.exclamationGray,
-        },
+        // {
+        //     label: ActionType.SHADOW_BAN_USER,
+        //     value: ActionType.SHADOW_BAN_USER,
+        //     icon: AppIcons.eyeClosed,
+        // },
+        // {
+        //     label: ActionType.BAN_USER,
+        //     value: ActionType.BAN_USER,
+        //     icon: AppIcons.exclamationGray,
+        // },
         {
             label: ActionType.RESET_PASSWORD,
             value: ActionType.RESET_PASSWORD,
@@ -153,48 +153,27 @@ export default function UserDetailsPage() {
         ));
     }
 
-    // ... existing shadowBanUserFn ...
-    const shadowBanUserFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
-                }}
-                title={ActionType.SHADOW_BAN_USER}
-                description="The user can still post, but nobody else will see their content."
-                primaryLabel={ActionType.SHADOW_BAN}
-                primaryIntent="danger"
-                showLoader
-                buttonVariant={BUTTON_TYPE.TETIARY}
-                onPrimaryAction={async () => {
-                    close();
-                }}
-            />
-        ));
-    }
 
-    const banUserFn = () => {
-        openModal(({ close }) => (
-            <ActionModal
-                close={close}
-                icon={{
-                    eclipse: AppIcons.eclipseYellow,
-                    icon: AppIcons.warningYellow
-                }}
-                title="Ban user"
-                description="Permanently blocks this user from the platform."
-                primaryLabel={ActionType.BAN_USER}
-                primaryIntent="danger"
-                showLoader
-                buttonVariant={BUTTON_TYPE.TETIARY}
-                onPrimaryAction={async () => {
-                    close();
-                }}
-            />
-        ));
-    }
+    // const banUserFn = () => {
+    //     openModal(({ close }) => (
+    //         <ActionModal
+    //             close={close}
+    //             icon={{
+    //                 eclipse: AppIcons.eclipseYellow,
+    //                 icon: AppIcons.warningYellow
+    //             }}
+    //             title="Ban user"
+    //             description="Permanently blocks this user from the platform."
+    //             primaryLabel={ActionType.BAN_USER}
+    //             primaryIntent="danger"
+    //             showLoader
+    //             buttonVariant={BUTTON_TYPE.TETIARY}
+    //             onPrimaryAction={async () => {
+    //                 close();
+    //             }}
+    //         />
+    //     ));
+    // }
 
     const sendResetInstructionFn = () => {
         const name = `${user.first_name} ${user.last_name}`;
@@ -233,10 +212,6 @@ export default function UserDetailsPage() {
     const handleMoreOptions = (value: string) => {
         if (value === ActionType.RESET_PASSWORD) {
             sendResetInstructionFn();
-        } else if (value === ActionType.BAN_USER) {
-            banUserFn()
-        } else if (value === ActionType.SHADOW_BAN_USER) {
-            shadowBanUserFn()
         }
     }
 

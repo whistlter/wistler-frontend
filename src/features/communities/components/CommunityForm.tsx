@@ -3,13 +3,15 @@ import { BUTTON_TYPE } from "@/components/button/constants";
 import { INPUT_TYPES } from "@/components/inputs/constants";
 import { FormInput } from "@/components/inputs/FormInput";
 import { SelectComponent } from "@/components/select/selectComponent";
+import { MultiSelectComponent } from "@/components/select/MultiSelectComponent";
 import { AppIcons } from "@/constants/constant";
 import { useState, useMemo } from "react";
 import FileUpload from "@/components/fileUpload/upload";
 import { showErrorToast } from "@/components/common/toastUtils";
-import { useUsers } from "@/features/users";
 
 import type { CreateCommunityPayload } from "@/features/communities/hooks/useCommunity";
+import { useInterests } from "@/features/communities/hooks/useCommunity";
+import { useUsers } from "@/features/users/hooks/useUsers";
 
 export interface CommunityFormData {
     Community_Name?: string;
@@ -20,6 +22,17 @@ export interface CommunityFormData {
     owner?: string;
     image?: string | null;
     user_id?: number;
+    interest_id?: number;
+    is_safe_space?: boolean;
+    is_member_screening?: boolean;
+    can_post_anonymously?: boolean;
+    community_interests?: Array<{
+        interest_id: number;
+        interest: {
+            id: number;
+            title: string;
+        };
+    }>;
 }
 
 interface CommunityFormProps {
@@ -37,42 +50,59 @@ function capitalizeFirst(str: string): string {
 }
 
 export function CommunityForm({ initialData, close, onSubmit, isPending, title }: CommunityFormProps) {
-    // Fetch users for owner dropdown
+    // Fetch interests for category dropdown
+    const { data: interestsData } = useInterests();
+
+    // Fetch users for owner dropdown (only in edit mode)
     const { data: usersData } = useUsers(1, 100);
 
-    // Build user options from API data
+    // Build interest options from API data
+    const interestOptions = useMemo(() => {
+        const interests = (interestsData as { payload?: { interests?: { id: number; title: string }[] } })?.payload?.interests || [];
+        // Map using actual database IDs, not array indexes
+        return interests.map(interest => ({
+            id: interest.id, // This is the actual database ID
+            label: interest.title,
+        }));
+    }, [interestsData]);
+
+    // Build user options for owner dropdown
     const userOptions = useMemo(() => {
-        const users = (usersData as { payload?: { users?: { id: number; first_name: string; last_name: string }[] } })?.payload?.users || [];
+        const users = (usersData as { payload?: { users?: { id: number; username: string }[] } })?.payload?.users || [];
         return users.map(user => ({
-            id: user.id,
-            label: `${user.first_name} ${user.last_name}`,
+            value: user.id,
+            label: user.username,
         }));
     }, [usersData]);
 
-    // Derive initial owner label from user_id
-    const initialOwnerLabel = (() => {
-        if (!initialData?.user_id) return "";
-        const user = userOptions.find(u => u.id === initialData.user_id);
-        return user?.label || "";
+    // Derive initial selected categories from community_interests
+    const initialSelectedCategories = (() => {
+        if (initialData?.community_interests && initialData.community_interests.length > 0) {
+            return initialData.community_interests.map(ci => ci.interest_id);
+        }
+        // Fallback to single interest_id if available
+        if (initialData?.interest_id) {
+            return [initialData.interest_id];
+        }
+        return [];
     })();
+
+    const initialOwnerLabel = initialData?.owner || "";
 
     const [name, setName] = useState(initialData?.Community_Name || "");
     const [description, setDescription] = useState(initialData?.description || "");
-    const [category, setCategory] = useState(initialData?.category || "");
+    const [selectedCategories, setSelectedCategories] = useState<number[]>(initialSelectedCategories);
     const [visibility, setVisibility] = useState(capitalizeFirst(initialData?.Visibility || initialData?.visibility || "Public"));
-    const [owner, setOwner] = useState("");
     const [image, setImage] = useState<File | null>(null);
+    const [owner, setOwner] = useState<number | string>(initialData?.user_id || "");
 
-    // Use explicitly selected owner, or fall back to the derived initial
+    // Initialize boolean fields from initialData, converting boolean to 'yes'/'no'
+    const [isSafeSpace] = useState<'yes' | 'no'>(initialData?.is_safe_space ? 'yes' : 'no');
+    const [isMemberScreening] = useState<'yes' | 'no'>(initialData?.is_member_screening ? 'yes' : 'no');
+    const [canPostAnonymously] = useState<'yes' | 'no'>(initialData?.can_post_anonymously ? 'yes' : 'no');
+
     const effectiveOwner = owner || initialOwnerLabel;
 
-    // Map category to interest_id
-    const categoryToInterestId: Record<string, string> = {
-        'Technology': '7',
-        'Business': '8',
-        'Lifestyle': '9',
-        'Education': '10',
-    };
 
     const handleSubmit = async () => {
         if (!name.trim()) {
@@ -80,22 +110,34 @@ export function CommunityForm({ initialData, close, onSubmit, isPending, title }
             return;
         }
 
-        // Find user_id from selected owner label
-        const selectedUser = userOptions.find(u => u.label === effectiveOwner);
-        const userId = selectedUser?.id?.toString() || initialData?.user_id?.toString() || '1';
+        if (selectedCategories.length === 0) {
+            showErrorToast("Validation Error", "Please select at least one category");
+            return;
+        }
+
+        // Convert selected category IDs to comma-separated string
+        const interestIds = selectedCategories.join(',');
+        console.log('Selected Categories (Actual DB IDs):', selectedCategories);
+        console.log('Interest IDs String:', interestIds);
 
         // Map UI fields to API payload format
-        onSubmit({
+        const payload: CreateCommunityPayload = {
             title: name,
             desc: description,
-            interest_id: categoryToInterestId[category] || '1',
+            interest_id: interestIds,
             visibility: visibility.toLowerCase() as 'private' | 'public',
-            is_safe_space: 'no',
-            is_member_screening: 'no',
-            can_post_anonymously: 'no',
-            user_id: userId,
+            is_safe_space: isSafeSpace,
+            is_member_screening: isMemberScreening,
+            can_post_anonymously: canPostAnonymously,
             image: image || undefined,
-        });
+        };
+
+        // Only include user_id when editing (initialData exists) and owner is set
+        if (initialData && owner) {
+            payload.user_id = owner.toString();
+        }
+
+        onSubmit(payload);
     };
 
     return (
@@ -129,12 +171,12 @@ export function CommunityForm({ initialData, close, onSubmit, isPending, title }
                 </div>
 
                 <div>
-                    <label className="text-[13px] font-medium text-gray-700 mb-2">Category</label>
-                    <SelectComponent
-                        data={['Technology', 'Business', 'Lifestyle', 'Education']}
-                        placeholder="Select"
-                        value={category}
-                        onChange={(val) => setCategory(val as string)}
+                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Category</label>
+                    <MultiSelectComponent
+                        data={interestOptions.map(i => ({ value: i.id, label: i.label }))}
+                        placeholder="Select categories"
+                        value={selectedCategories}
+                        onChange={(val) => setSelectedCategories(val as number[])}
                     />
                 </div>
 
@@ -153,16 +195,19 @@ export function CommunityForm({ initialData, close, onSubmit, isPending, title }
                     />
                 </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-gray-700 mb-2">Owner Assignment</label>
-                    <p className="text-[13px] text-[#969696] mb-2">Select a user to own and manage this community.</p>
-                    <SelectComponent
-                        data={userOptions.map(u => u.label)}
-                        placeholder="Select User"
-                        value={effectiveOwner}
-                        onChange={(val) => setOwner(val as string)}
-                    />
-                </div>
+                {/* Owner Assignment - Only show in edit mode */}
+                {initialData && (
+                    <div>
+                        <label className="block text-[13px] font-medium text-gray-700 mb-2">Owner Assignment</label>
+                        <p className="text-[11px] text-gray-500 mb-2">Select a user to own and manage this community.</p>
+                        <SelectComponent
+                            data={userOptions}
+                            placeholder="Select owner"
+                            value={effectiveOwner}
+                            onChange={(val) => setOwner(val as number)}
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="shrink-0 border-t border-[#E8E8E8] bg-white px-6 py-5">

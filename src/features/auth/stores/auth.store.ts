@@ -49,7 +49,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
             },
             false,
-            "/login"
+            "/admin/login"
           ),
 
         logout: () => {
