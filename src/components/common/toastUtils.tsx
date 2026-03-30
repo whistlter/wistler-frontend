@@ -13,3 +13,11 @@ export const showErrorToast = (title: string, message: string) => {
         <CustomToast t={t} title={title} message={message} type="error" />
     ));
 };
+
+// Extracts the actual backend error message from any error type
+export function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message || 'Something went wrong. Please try again.';
+    }
+    return 'Something went wrong. Please try again.';
+}

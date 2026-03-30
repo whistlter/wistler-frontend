@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 import { logger } from "@/utils/logger";
 
 import { FormInput } from "@/components/inputs/FormInput";
@@ -30,7 +30,7 @@ function Login() {
         },
         onError: (error) => {
           logger.error("Login failed", error);
-          showErrorToast("Login Failed", "Invalid email or password");
+          showErrorToast("Login Failed", getErrorMessage(error));
         },
       }
     );

@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, Flag, /* Settings, */ LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Flag, Zap, /* Settings, */ LogOut } from 'lucide-react';
 import { useAuthUser, useLogoutAction } from '@/features/auth/stores/auth.store';
 import { AppIcons } from '@/constants/constant';
 import { BUTTON_TYPE } from '@/components/button/constants';
@@ -26,6 +26,7 @@ const Sidebar = () => {
         DashBoard: '/',
         User: '/users',
         Community: '/community',
+        Moments: '/moments',
         Moderation: '/activity-logs'
         // Moderation: '/moderation'
 
@@ -35,6 +36,7 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: Path.DashBoard },
         { icon: Users, label: 'User Management', path: Path.User },
         { icon: MessageSquare, label: 'Communities', path: Path.Community },
+        { icon: Zap, label: 'Moments', path: Path.Moments },
         { icon: Flag, label: 'Activity Logs', path: Path.Moderation },
         // { icon: Flag, label: 'Moderation', path: Path.Moderation },
     ];

@@ -15,7 +15,7 @@ import { useModal } from "@/components/modal";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { ActionType } from "@/constants/actions";
 import { AxiosError } from "axios";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 
 export default function Users() {
     const { openModal } = useModal();
@@ -101,8 +101,7 @@ export default function Users() {
                         showSuccessToast("User Suspended", "The user has been successfully suspended.");
                         close();
                     } catch (error) {
-                        console.error(error);
-                        showErrorToast("Suspension Failed", "Failed to suspend user.");
+                        showErrorToast("Suspension Failed", getErrorMessage(error));
                     }
                 }}
             />
@@ -128,8 +127,7 @@ export default function Users() {
                         showSuccessToast("User Activated", "The user account has been reactivated.");
                         close();
                     } catch (error) {
-                        console.error(error);
-                        showErrorToast("Activation Failed", "Failed to activate user.");
+                        showErrorToast("Activation Failed", getErrorMessage(error));
                     }
                 }}
             />

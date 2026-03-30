@@ -40,7 +40,6 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        // Use axiosInstance or fix the URL to avoid double slash if API_BASE_URL has a trailing slash
         const response = await axios.post(`${API_BASE_URL}auth/refresh`, { refreshToken });
 
         const { accessToken } = response.data;
@@ -55,28 +54,35 @@ axiosInstance.interceptors.response.use(
       }
     }
 
+    // Extract the backend error message and set it on error.message
+    // so every catch block gets the real message via error.message
+    const backendMessage = error.response?.data?.message;
+    if (backendMessage) {
+      error.message = backendMessage;
+    }
+
     return Promise.reject(error);
   }
 );
 
 // Base API service
 export const api = {
-  get: <T = any>(url: string, config?: AxiosRequestConfig) =>
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
     axiosInstance.get<T>(url, config).then(res => res.data),
 
-  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
     axiosInstance.post<T>(url, data, config).then(res => res.data),
 
-  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
     axiosInstance.put<T>(url, data, config).then(res => res.data),
 
-  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
     axiosInstance.patch<T>(url, data, config).then(res => res.data),
 
-  delete: <T = any>(url: string, config?: AxiosRequestConfig) =>
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
     axiosInstance.delete<T>(url, config).then(res => res.data),
 
-  upload: <T = any>(url: string, file: File, onProgress?: (progress: number) => void) => {
+  upload: <T = unknown>(url: string, file: File, onProgress?: (progress: number) => void) => {
     const formData = new FormData();
     formData.append('file', file);
     return axiosInstance.post<T>(url, formData, {

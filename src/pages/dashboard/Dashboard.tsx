@@ -6,7 +6,7 @@ import { Button } from "@/components/button/Button";
 import { useModal } from "@/components/modal";
 import { useCreateCommunity } from "@/features/communities";
 import { CommunityForm } from "@/features/communities/components/CommunityForm";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 
 export default function DashboardPage() {
   const { openModal, } = useModal();
@@ -58,8 +58,7 @@ export default function DashboardPage() {
                 close();
               },
               onError: (err) => {
-                showErrorToast("Creation Failed", "Failed to create community.");
-                console.error(err);
+                showErrorToast("Creation Failed", getErrorMessage(err));
               }
             });
           }}

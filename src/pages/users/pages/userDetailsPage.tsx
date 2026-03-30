@@ -15,7 +15,7 @@ import { useUser, useBlockUser, useActivateUser, useResetUserPassword } from "@/
 import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { statusToColor } from "@/utils/helper";
 import { Loader } from "@/components/common/Loader";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 
 type Tab = "Communities" | "Activities";
 
@@ -111,7 +111,7 @@ export default function UserDetailsPage() {
                             close();
                         } catch (error) {
                             console.error(error);
-                            showErrorToast("Suspension Failed", "Failed to suspend user.");
+                            showErrorToast("Suspension Failed", getErrorMessage(error));
                         }
                     } else {
                         close();
@@ -143,7 +143,7 @@ export default function UserDetailsPage() {
                             close();
                         } catch (error) {
                             console.error(error);
-                            showErrorToast("Activation Failed", "Failed to activate user.");
+                            showErrorToast("Activation Failed", getErrorMessage(error));
                         }
                     } else {
                         close();
@@ -199,7 +199,7 @@ export default function UserDetailsPage() {
                             close();
                         } catch (error) {
                             console.error(error);
-                            showErrorToast("Reset Failed", "Failed to send reset instructions.");
+                            showErrorToast("Reset Failed", getErrorMessage(error));
                         }
                     } else {
                         close();

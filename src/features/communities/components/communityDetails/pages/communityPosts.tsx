@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { mapCommunityPostToRowDTO, type CommunitiesPostRowDTO } from "@/features/communities/types/communityPost.types";
 import { useCommunitiesPost, useSoftDeletePost } from "@/features/communities/hooks/useCommunityPost";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 
 export function CommunityPosts() {
     const { id } = useParams<{ id: string }>();
@@ -226,8 +226,7 @@ export function CommunityPosts() {
                         showSuccessToast("Post Deleted", "The post has been successfully deleted.");
                         close();
                     } catch (error) {
-                        console.error("Failed to delete post:", error);
-                        showErrorToast("Deletion Failed", "Failed to delete the post. Please try again.");
+                        showErrorToast("Deletion Failed", getErrorMessage(error));
                     }
                 }}
             />

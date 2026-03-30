@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 import { Button } from "@/components/button/Button";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { FormInput } from "@/components/inputs/FormInput";
@@ -34,8 +34,7 @@ export const ChangePasswordModal = ({ close }: ChangePasswordModalProps) => {
             showSuccessToast("Password Updated", "Your password has been changed successfully.");
             close();
         } catch (error) {
-            console.error(error);
-            showErrorToast("Update Failed", "Failed to update password. Please try again.");
+            showErrorToast("Update Failed", getErrorMessage(error));
         } finally {
             setLoading(false);
         }
