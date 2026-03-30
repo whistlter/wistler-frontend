@@ -2,6 +2,7 @@
 
 export type MomentPostRowDTO = {
     id: number;
+    status: string;
     user_id: number;
     user_name: string;
     user_image?: string | null;
@@ -68,6 +69,7 @@ export function mapMomentPostToRowDTO(post: MomentPostApi): MomentPostRowDTO {
 
     return {
         id: post.id,
+        status: post.status ?? 'active',
         user_id: post.user?.id ?? 0,
         user_name: userName,
         user_image: post.user?.image,

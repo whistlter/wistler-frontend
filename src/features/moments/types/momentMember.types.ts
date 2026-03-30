@@ -2,6 +2,7 @@
 
 export type MomentMemberRowDTO = {
     id: number;
+    status: string;
     name: string;
     join_date: string;
     posts: string;
@@ -32,6 +33,7 @@ export function mapMomentMemberToRowDTO(member: MomentMemberApi): MomentMemberRo
 
     return {
         id: member.user?.id ?? member.id,
+        status: 'active',
         name,
         join_date: member.createdAt
             ? new Date(member.createdAt).toLocaleDateString('en-US', {
