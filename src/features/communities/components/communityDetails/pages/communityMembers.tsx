@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { mapCommunityMembersToRowDTO, type CommunitiesMembersRowDTO } from "@/features/communities/types/communityMember.types";
 import { useCommunitiesMembers, useRemoveUserFromCommunity } from "@/features/communities/hooks/useCommunityMembers";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function CommunityMembers() {
@@ -127,8 +127,7 @@ export function CommunityMembers() {
                         queryClient.invalidateQueries({ queryKey: ['communities', id, 'members'] });
                         close();
                     } catch (error) {
-                        console.error("Failed to remove user:", error);
-                        showErrorToast("Removal Failed", "Failed to remove the user. Please try again.");
+                        showErrorToast("Removal Failed", getErrorMessage(error));
                     }
                 }}
             />

@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 import { logger } from "@/utils/logger";
 import { FormInput } from "@/components/inputs/FormInput";
 import { INPUT_TYPES } from "@/components/inputs/constants";
@@ -49,7 +49,7 @@ function ResetPassword() {
                 },
                 onError: (error) => {
                     logger.error("Password reset failed", error);
-                    showErrorToast("Reset Failed", "Failed to reset password. The link may have expired.");
+                    showErrorToast("Reset Failed", getErrorMessage(error));
                 },
             }
         );

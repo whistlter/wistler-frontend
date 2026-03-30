@@ -15,7 +15,7 @@ import { ActionModal, DateRangeModal, StatusFilterModal } from "@/components/mod
 import { NavLink } from "react-router-dom";
 import { useCommunity, useSuspendCommunity, useActivateCommunity, useSoftDeleteCommunity } from "@/features/communities/hooks/useCommunity";
 import { AxiosError } from "axios";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 
 
 type Tab = "overview" | "Members" | "Posts";
@@ -129,8 +129,7 @@ export default function CommunityDetailsPage() {
                         showSuccessToast("Community Suspended", "The community has been suspended successfully.");
                         close();
                     } catch (error) {
-                        console.error("Failed to suspend community:", error);
-                        showErrorToast("Suspension Failed", "Failed to suspend the community. Please try again.");
+                        showErrorToast("Suspension Failed", getErrorMessage(error));
                     }
                 }}
             />
@@ -158,8 +157,7 @@ export default function CommunityDetailsPage() {
                         showSuccessToast("Community Activated", "The community has been reactivated successfully.");
                         close();
                     } catch (error) {
-                        console.error("Failed to activate community:", error);
-                        showErrorToast("Activation Failed", "Failed to activate the community. Please try again.");
+                        showErrorToast("Activation Failed", getErrorMessage(error));
                     }
                 }}
             />
@@ -188,8 +186,7 @@ export default function CommunityDetailsPage() {
                         close();
                         navigate('/communities');
                     } catch (error) {
-                        console.error("Failed to delete community:", error);
-                        showErrorToast("Deletion Failed", "Failed to delete the community. Please try again.");
+                        showErrorToast("Deletion Failed", getErrorMessage(error));
                     }
                 }}
             />

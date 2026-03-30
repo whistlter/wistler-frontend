@@ -10,7 +10,7 @@ import { useSearchStore } from "@/stores/searchStore";
 import { useUserCommunities } from "@/features/users/hooks/useUsers";
 import { mapUserCommunityToRowDTO, type UserCommunityRowDTO } from "@/features/users/types/user.types";
 import { useRemoveUserFromCommunity } from "@/features/communities/hooks/useCommunityMembers";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -97,8 +97,7 @@ export function UsercommunityTap() {
                         queryClient.invalidateQueries({ queryKey: ['users', userId, 'communities'] });
                         close();
                     } catch (error) {
-                        console.error("Failed to remove user:", error);
-                        showErrorToast("Removal Failed", "Failed to remove the user. Please try again.");
+                        showErrorToast("Removal Failed", getErrorMessage(error));
                     }
                 }}
             />

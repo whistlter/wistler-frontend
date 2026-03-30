@@ -15,7 +15,7 @@ import { mapCommunityToRowDTO, type CommunitiesRowDTO } from "@/features/communi
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCommunities, useCreateCommunity, useUpdateCommunity, useSuspendCommunity, useActivateCommunity, useSoftDeleteCommunity } from "@/features/communities";
-import { showSuccessToast, showErrorToast } from "@/components/common/toastUtils";
+import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
 import { CommunityForm } from "@/features/communities/components/CommunityForm";
 
 // CommunityForm extracted to src/features/communities/components/CommunityForm.tsx
@@ -42,7 +42,7 @@ function EditCommunityModal({ data, close }: EditCommunityModalProps) {
                         close();
                     },
                     onError: (err) => {
-                        showErrorToast("Update Failed", "Failed to update community details.");
+                        showErrorToast("Update Failed", getErrorMessage(err));
                         console.error(err);
                     }
                 });
@@ -144,8 +144,7 @@ export default function Communities() {
                         showSuccessToast("Community Suspended", "The community has been successfully suspended.");
                         close();
                     } catch (error) {
-                        console.error(error);
-                        showErrorToast("Suspension Failed", "Failed to suspend community.");
+                        showErrorToast("Suspension Failed", getErrorMessage(error));
                     }
                 }}
             />
@@ -172,8 +171,7 @@ export default function Communities() {
                         showSuccessToast("Community Activated", "The community has been successfully reactivated.");
                         close();
                     } catch (error) {
-                        console.error(error);
-                        showErrorToast("Activation Failed", "Failed to activate community.");
+                        showErrorToast("Activation Failed", getErrorMessage(error));
                     }
                 }}
             />
@@ -200,8 +198,7 @@ export default function Communities() {
                         showSuccessToast("Community Deleted", "The community has been successfully deleted.");
                         close();
                     } catch (error) {
-                        console.error(error);
-                        showErrorToast("Deletion Failed", "Failed to delete community.");
+                        showErrorToast("Deletion Failed", getErrorMessage(error));
                     }
                 }}
             />
@@ -226,8 +223,7 @@ export default function Communities() {
                                 close();
                             },
                             onError: (err) => {
-                                showErrorToast("Creation Failed", "Failed to create community. Please try again.");
-                                console.error(err);
+                                showErrorToast("Creation Failed", getErrorMessage(err));
                             }
                         });
                     }}

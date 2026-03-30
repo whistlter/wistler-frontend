@@ -22,7 +22,11 @@ export const ActionType = {
     MANAGE_MODERATORS: 'Manage Moderators',
     SHADOW_BAN_USER: 'Shadowban user',
     RESET_PASSWORD: 'Reset password',
-    LOGOUT: 'No, Stay'
+    LOGOUT: 'No, Stay',
+    DELETE_TOPIC: 'Delete topic',
+    SUSPEND_TOPIC: 'Suspend topic',
+    ACTIVATE_TOPIC: 'Activate topic',
+    REMOVE_POST: 'Remove post',
 } as const;
 
 export type ActionType = typeof ActionType[keyof typeof ActionType];
