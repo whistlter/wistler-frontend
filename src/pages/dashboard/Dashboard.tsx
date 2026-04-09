@@ -7,41 +7,33 @@ import { useModal } from "@/components/modal";
 import { useCreateCommunity } from "@/features/communities";
 import { CommunityForm } from "@/features/communities/components/CommunityForm";
 import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
+import { useDashboardOverview } from "@/features/dashboard/hooks/useDashboardOverview";
+import { useActivities } from "@/features/activities/hooks/useActivities";
 
 export default function DashboardPage() {
   const { openModal, } = useModal();
   const Appicon = { ...AppIcons }
   const { mutate: createCommunity, isPending: isCreating } = useCreateCommunity();
 
+  const { data: overviewData } = useDashboardOverview();
+  const { data: activitiesData } = useActivities({ page: 1, pageSize: 5 });
+
+  const overview = overviewData?.payload?.overview;
+
   const stats = {
-    totalUsers: 344,
-    activeUsers: 344,
-    communities: 39944,
-    suspendedUsers: 344,
+    totalUsers: overview?.users?.total_users ?? 0,
+    activeUsers: Number(overview?.users?.active_users ?? 0),
+    communities: overview?.active_community_count ?? 0,
+    suspendedUsers: Number(overview?.users?.banned_users ?? 0),
   };
 
-  const activities = [
-    {
-      id: 1,
-      title: "Adelekan Samuel joined Young Shall Grow community",
-      date: "2nd December, 2025",
-      eclipse: AppIcons.eclipseRed,
-      icon: AppIcons.activityRed
-    },
-    {
-      id: 2,
-      title: "Micheal Soludo submitted a post for review",
-      date: "2nd December, 2025",
-      eclipse: AppIcons.eclipseRed,
-      icon: AppIcons.flagRed
-    },
-  ];
+  const activities = activitiesData?.payload?.activities ?? [];
 
   const moderation = {
-    pendingPosts: 344,
-    pendingComments: 349874,
-    flaggedContent: 344,
-    shadowbannedUsers: 344,
+    pendingPosts: 0,
+    pendingComments: 0,
+    flaggedContent: 0,
+    shadowbannedUsers: 0,
   };
 
   const openCreateComunityModal = () => {

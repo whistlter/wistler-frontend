@@ -3,10 +3,15 @@ import { FormInput } from '@/components/inputs/FormInput';
 import { useSearchStore } from '@/stores/searchStore';
 import { useModal } from '@/components/modal';
 import { NotificationModal } from '@/components/modal/NotificationModal';
+import { useNotifications } from '@/features/notifications/hooks/useNotifications';
+import { useNavigate } from 'react-router-dom';
 
 export const Topbar = () => {
+    const navigate = useNavigate();
     const { openModal } = useModal();
     const { searchTerm, setSearchTerm, placeholder } = useSearchStore();
+    const { data } = useNotifications();
+    const unreadCount = data?.payload?.adminNotifications?.filter(n => !n.is_read).length ?? 0;
     return (
         <div className="h-16 lg:h-[72px] bg-white border-b border-gray-200 px-4 lg:px-8 flex items-center justify-between w-full">
             {/* Left Side: Search */}
@@ -25,7 +30,7 @@ export const Topbar = () => {
                 <button
                     className="relative flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors p-2 lg:p-0 cursor-pointer"
                     onClick={() => openModal(({ close }) => (
-                        <NotificationModal close={close} />
+                        <NotificationModal close={close} onNavigate={(path, state) => navigate(path, { state })} />
                     ), { type: 'side', width: 'w-[450px]' })}
                 >
                     <Bell className="w-5 lg:w-[20px] h-5 lg:h-[20px]" />
@@ -33,9 +38,11 @@ export const Topbar = () => {
                     <ChevronDown className="hidden md:inline w-[16px] h-[16px] text-gray-500" />
 
                     {/* Notification Badge */}
-                    <span className="absolute top-0 lg:top-[-4px] right-0 lg:left-[10px] w-4 lg:w-[18px] h-4 lg:h-[18px] bg-[#ff0055] text-white text-[10px] lg:text-[11px] font-bold rounded-full flex items-center justify-center">
-                        2
-                    </span>
+                    {unreadCount > 0 && (
+                        <span className="absolute top-0 lg:top-[-4px] right-0 lg:left-[10px] w-4 lg:w-[18px] h-4 lg:h-[18px] bg-[#ff0055] text-white text-[10px] lg:text-[11px] font-bold rounded-full flex items-center justify-center">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                    )}
                 </button>
             </div>
         </div>
