@@ -3,7 +3,7 @@ import { Button } from "@/components/button/Button";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { AppIcons } from "@/constants/constant";
 import { CheckCheck } from 'lucide-react';
-import { useNotifications } from '@/features/notifications/hooks/useNotifications';
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/features/notifications/hooks/useNotifications';
 import type { AdminNotification } from '@/features/notifications/hooks/useNotifications';
 import { formatTime } from '@/lib/formatTime';
 
@@ -42,6 +42,8 @@ function getNotificationIcon(type: string, subType: string): string {
 export const NotificationModal = ({ close, onNavigate }: NotificationModalProps) => {
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
     const { data, isLoading } = useNotifications();
+    const markRead = useMarkNotificationRead();
+    const markAllRead = useMarkAllNotificationsRead();
 
     const allNotifications: AdminNotification[] = data?.payload?.adminNotifications ?? [];
     const unreadNotifications = allNotifications.filter(n => !n.is_read);
@@ -55,7 +57,10 @@ export const NotificationModal = ({ close, onNavigate }: NotificationModalProps)
                     <h2 className="text-[19px] font-semibold text-[#0A0D14]">
                         Notifications
                     </h2>
-                    <button className="flex items-center gap-1 text-[13px] font-medium text-[#666] hover:text-[#333] cursor-pointer transition-colors">
+                    <button
+                        onClick={() => markAllRead()}
+                        className="flex items-center gap-1 text-[13px] font-medium text-[#666] hover:text-[#333] cursor-pointer transition-colors"
+                    >
                         Mark all as read
                         <CheckCheck className="w-4 h-4" />
                     </button>
@@ -96,6 +101,7 @@ export const NotificationModal = ({ close, onNavigate }: NotificationModalProps)
                     <div
                         key={notification.id}
                         onClick={() => {
+                            if (!notification.is_read) markRead(notification.id);
                             close();
                             onNavigate(`/notifications/Details/${notification.id}`, { notification });
                         }}

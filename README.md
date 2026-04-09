@@ -73,3 +73,54 @@ export default defineConfig([
 ```
 # whistler-admin
 # whistler-admin
+
+## Vercel Build Notifications → WhatsApp (via CallMeBot)
+
+Get WhatsApp group messages whenever a Vercel build starts, succeeds, fails, or is canceled.
+
+### How it works
+
+Vercel Build Event → Webhook → `/api/vercel-webhook` → CallMeBot API → WhatsApp Group
+
+### Step 1 — Set up CallMeBot for your WhatsApp group
+
+1. Save `+34 644 59 91 41` as a contact (CallMeBot)
+2. Add that contact to your WhatsApp group
+3. In the group, send: `I allow callmebot to send me messages`
+4. The bot replies with your **phone number** and **API key** — save both
+
+### Step 2 — Add environment variables in Vercel
+
+Go to your Vercel project → **Settings → Environment Variables** and add:
+
+| Key | Value |
+|-----|-------|
+| `CALLMEBOT_PHONE` | Phone number from step 1 (with country code, no `+`) |
+| `CALLMEBOT_APIKEY` | API key from step 1 |
+| `VERCEL_WEBHOOK_SECRET` | Any random secret string — you'll use the same value in step 3 |
+
+### Step 3 — Create the Vercel webhook
+
+Go to [vercel.com/account/webhooks](https://vercel.com/account/webhooks) → **Add** and set:
+
+- **URL**: `https://your-deployment-url.vercel.app/api/vercel-webhook`
+- **Secret**: same value as `VERCEL_WEBHOOK_SECRET`
+- **Events**: Deployment Created, Deployment Ready, Deployment Error, Deployment Canceled
+
+### Example notification
+
+```
+🚀 Vercel — Build started
+Project: whistler-admin
+Branch: feature/build
+Author: suleiman
+Commit: feat: add activity detail pages
+```
+
+```
+✅ Vercel — Build successful
+Project: whistler-admin
+Branch: feature/build
+Author: suleiman
+URL: https://whistler-admin.vercel.app
+```

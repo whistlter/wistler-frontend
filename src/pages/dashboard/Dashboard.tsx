@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const { mutate: createCommunity, isPending: isCreating } = useCreateCommunity();
 
   const { data: overviewData } = useDashboardOverview();
-  const { data: activitiesData } = useActivities({ page: 1, pageSize: 5 });
+  const { data: activitiesData } = useActivities({ page: 1, pageSize: 3 });
 
   const overview = overviewData?.payload?.overview;
 
