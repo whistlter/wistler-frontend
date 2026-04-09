@@ -3,102 +3,49 @@ import { Button } from "@/components/button/Button";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { AppIcons } from "@/constants/constant";
 import { CheckCheck } from 'lucide-react';
+import { useNotifications } from '@/features/notifications/hooks/useNotifications';
+import type { AdminNotification } from '@/features/notifications/hooks/useNotifications';
+import { formatTime } from '@/lib/formatTime';
 
 type NotificationModalProps = {
     close: () => void;
+    onNavigate: (path: string, state: object) => void;
 };
 
-// Mock data matching the user's image
-const MOCK_NOTIFICATIONS = [
-    {
-        id: 1,
-        type: 'community_created',
-        title: 'New community created',
-        description: 'Creative Minds Lounge has been created and is ready for moderation',
-        time: '2 minutes ago',
-        isUnread: true,
-        icon: AppIcons.users, // Placeholder, usually a group icon
-    },
-    {
-        id: 2,
-        type: 'community_suspended',
-        title: 'Community suspended',
-        description: 'Side Hustlers Hub has been suspended. Members can no longer post or comment',
-        time: '1 hour ago',
-        isUnread: false,
-        icon: AppIcons.unavailable, // Placeholder for block
-    },
-    {
-        id: 3,
-        type: 'community_updated',
-        title: 'Community updated',
-        description: 'Settings for Book Haven were updated successfully',
-        time: 'Yesterday',
-        isUnread: false,
-        icon: AppIcons.eclipseGreen, // Placeholder for check/success
-    },
-    {
-        id: 4,
-        type: 'post_reported',
-        title: 'Post reported',
-        description: 'A post in Tech Rookies was moved to the review queue.',
-        time: '2 days ago',
-        isUnread: false,
-        icon: AppIcons.flag,
-    },
-    {
-        id: 5,
-        type: 'content_review',
-        title: 'Content moved to review',
-        description: 'A post in Tech Rookies was moved to the review queue',
-        time: '2 days ago',
-        isUnread: false,
-        icon: AppIcons.search,
-    },
-    {
-        id: 2,
-        type: 'community_suspended',
-        title: 'Community suspended',
-        description: 'Side Hustlers Hub has been suspended. Members can no longer post or comment',
-        time: '1 hour ago',
-        isUnread: false,
-        icon: AppIcons.unavailable, // Placeholder for block
-    },
-    {
-        id: 3,
-        type: 'community_updated',
-        title: 'Community updated',
-        description: 'Settings for Book Haven were updated successfully',
-        time: 'Yesterday',
-        isUnread: false,
-        icon: AppIcons.eclipseGreen, // Placeholder for check/success
-    },
-    {
-        id: 4,
-        type: 'post_reported',
-        title: 'Post reported',
-        description: 'A post in Tech Rookies was moved to the review queue.',
-        time: '2 days ago',
-        isUnread: false,
-        icon: AppIcons.flag,
-    },
-    {
-        id: 5,
-        type: 'content_review',
-        title: 'Content moved to review',
-        description: 'A post in Tech Rookies was moved to the review queue',
-        time: '2 days ago',
-        isUnread: false,
-        icon: AppIcons.search,
-    },
-];
+function getNotificationIcon(type: string, subType: string): string {
+    // Sub-type takes priority (more specific)
+    switch (subType) {
+        case 'community-created':         return AppIcons.users;
+        case 'community-joined':          return AppIcons.usergroup;
+        case 'community-request-to-join': return AppIcons.usersRed;
+        case 'community-updated':         return AppIcons.eclipseGreen;
+        case 'community-suspended':       return AppIcons.unavailable;
+        case 'post-reported':             return AppIcons.flagRed;
+        case 'moment-created':            return AppIcons.lightning;
+        case 'moment-reported':           return AppIcons.flagblue;
+    }
 
-export const NotificationModal = ({ close }: NotificationModalProps) => {
+    // Fall back to type
+    switch (type) {
+        case 'reply':      return AppIcons.messageBubble;
+        case 'comment':    return AppIcons.messageMultiple;
+        case 'post':       return AppIcons.clipboard;
+        case 'moment':     return AppIcons.lightning;
+        case 'events':     return AppIcons.calendar;
+        case 'connection': return AppIcons.userBlocked;
+        case 'community':  return AppIcons.users;
+        default:           return AppIcons.bell;
+    }
+}
+
+
+export const NotificationModal = ({ close, onNavigate }: NotificationModalProps) => {
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+    const { data, isLoading } = useNotifications();
 
-    const notifications = activeTab === 'all'
-        ? MOCK_NOTIFICATIONS
-        : MOCK_NOTIFICATIONS.filter(n => n.isUnread);
+    const allNotifications: AdminNotification[] = data?.payload?.adminNotifications ?? [];
+    const unreadNotifications = allNotifications.filter(n => !n.is_read);
+    const notifications = activeTab === 'all' ? allNotifications : unreadNotifications;
 
     return (
         <div className="flex h-full flex-col bg-white w-full">
@@ -132,21 +79,31 @@ export const NotificationModal = ({ close }: NotificationModalProps) => {
                             : 'text-[#666]'
                             }`}
                     >
-                        Unread({MOCK_NOTIFICATIONS.filter(n => n.isUnread).length})
+                        Unread({unreadNotifications.length})
                     </button>
                 </div>
             </div>
 
             {/* Scrollable List */}
             <div className="flex-1 overflow-y-auto">
-                {notifications.map((notification) => (
+                {isLoading && (
+                    <div className="flex items-center justify-center h-40 text-[#666]">
+                        <p className="text-sm">Loading...</p>
+                    </div>
+                )}
+
+                {!isLoading && notifications.map((notification) => (
                     <div
                         key={notification.id}
+                        onClick={() => {
+                            close();
+                            onNavigate(`/notifications/Details/${notification.id}`, { notification });
+                        }}
                         className="px-6 py-4 border-b border-[#F2F4F7] hover:bg-[#FAF9F6] transition-colors cursor-pointer flex gap-3 group relative"
                     >
                         {/* Icon */}
                         <div className="shrink-0 w-10 h-10 rounded-full bg-[#F9FAFB] border border-[#EAECF0] flex items-center justify-center">
-                            <img src={notification.icon} alt="" className="w-5 h-5 opacity-60" />
+                            <img src={getNotificationIcon(notification.type, notification.sub_type)} alt="" className="w-5 h-5 opacity-60" />
                         </div>
 
                         {/* Content */}
@@ -155,21 +112,21 @@ export const NotificationModal = ({ close }: NotificationModalProps) => {
                                 <h3 className="text-[14px] font-medium text-[#101828] truncate pr-4">
                                     {notification.title}
                                 </h3>
-                                {notification.isUnread && (
+                                {!notification.is_read && (
                                     <span className="shrink-0 w-2 h-2 rounded-full bg-[#FF2860] mt-1.5" />
                                 )}
                             </div>
                             <p className="text-[13px] text-[#475467] leading-relaxed mt-0.5 line-clamp-2">
-                                {notification.description}
+                                {notification.desc}
                             </p>
                             <span className="text-[12px] text-[#98A2B3] mt-1.5 block">
-                                {notification.time}
+                                {formatTime(notification.createdAt)}
                             </span>
                         </div>
                     </div>
                 ))}
 
-                {notifications.length === 0 && (
+                {!isLoading && notifications.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-40 text-[#666]">
                         <p className="text-sm">No notifications found</p>
                     </div>

@@ -20,6 +20,8 @@ const CommunityDetailsPage = lazy(() => import("@/features/communities/component
 const Moments = lazy(() => import("@/pages/moments/Moments"));
 const MomentDetailsPage = lazy(() => import("@/features/moments/components/momentDetails/MomentDetailsPage"));
 const ActivityLogs = lazy(() => import("@/pages/activity-logs/ActivityLogs"));
+const ActivityDetailsPage = lazy(() => import("@/features/activities/components/ActivityDetailsPage"));
+const NotificationDetailsPage = lazy(() => import("@/features/notifications/components/NotificationDetailsPage"));
 const NotFound = lazy(() => import("@/pages/not-found/NotFound"));
 
 export default function AppRoutes() {
@@ -42,6 +44,8 @@ export default function AppRoutes() {
             <Route path="community" element={<Communities />} />
             <Route path="moderation" element={<Moderation />} />
             <Route path="activity-logs" element={<ActivityLogs />} />
+            <Route path="activity-logs/Details/:id" element={<ActivityDetailsPage />} />
+            <Route path="notifications/Details/:id" element={<NotificationDetailsPage />} />
             <Route path="settings" element={<ModalDemo />} />
             <Route path="moments" element={<Moments />} />
             <Route path="moments/Details/:id" element={<MomentDetailsPage />} />

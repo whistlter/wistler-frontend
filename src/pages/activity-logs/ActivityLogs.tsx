@@ -1,68 +1,68 @@
 // src/pages/activity-logs/ActivityLogs.tsx
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
 import { Pagination } from "@/components/pagination/Pagination";
 import { Loader } from "@/components/common/Loader";
+import { useActivities } from "@/features/activities/hooks/useActivities";
+import type { ActivityItem } from "@/features/activities/hooks/useActivities";
+import { formatTime } from "@/lib/formatTime";
 
-type Tab = "Communities" | "Users";
+type Tab = "all" | "community" | "user";
 
-type ActivityItem = {
-    id: string | number;
-    type: string;
-    title: string;
-    description: string;
-    time: string;
-};
+const tabs: { key: Tab; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "community", label: "Communities" },
+    { key: "user", label: "Users" },
+];
 
-// Mock data removed. Replace with actual API hook.
-const mockUserActivities: ActivityItem[] = [];
-const mockCommunityActivities: ActivityItem[] = [];
+function getActivityIcon(type: string, subType: string): string {
+    switch (subType) {
+        case 'community-created':         return AppIcons.users;
+        case 'community-joined':          return AppIcons.usergroup;
+        case 'community-request-to-join': return AppIcons.usersRed;
+        case 'community-updated':         return AppIcons.eclipseGreen;
+        case 'community-suspended':       return AppIcons.unavailable;
+        case 'post-reported':             return AppIcons.flagRed;
+        case 'moment-created':            return AppIcons.lightning;
+        case 'moment-reported':           return AppIcons.flagblue;
+    }
+    switch (type) {
+        case 'reply':      return AppIcons.messageBubble;
+        case 'comment':    return AppIcons.messageMultiple;
+        case 'post':       return AppIcons.clipboard;
+        case 'moment':     return AppIcons.lightning;
+        case 'events':     return AppIcons.calendar;
+        case 'connection': return AppIcons.userBlocked;
+        case 'community':  return AppIcons.users;
+        case 'user':       return AppIcons.user;
+        default:           return AppIcons.activityRed;
+    }
+}
+
 
 export default function ActivityLogs() {
-    const [activeTab, setActiveTab] = useState<Tab>("Users");
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState<Tab>("all");
     const [page, setPage] = useState(1);
-    const PAGE_SIZE = 10;
-    const { setPlaceholder, clearSearch } = useSearchStore();
+    const PAGE_SIZE = 30;
+    const { searchTerm, setPlaceholder, clearSearch } = useSearchStore();
 
     useEffect(() => {
         setPlaceholder('Search activity logs...');
         return () => clearSearch();
     }, [setPlaceholder, clearSearch]);
 
-    const tabs = [
-        { key: "Communities" as const, label: "Communities" },
-        { key: "Users" as const, label: "Users" },
-    ];
+    const { data, isLoading } = useActivities({
+        page,
+        pageSize: PAGE_SIZE,
+        search: searchTerm || undefined,
+        sort: activeTab,
+    });
 
-    const activities = activeTab === "Users" ? mockUserActivities : mockCommunityActivities;
-    const totalPages = Math.ceil(activities.length / PAGE_SIZE);
-    const isLoading = false;
-
-    const getActivityIcon = (type: string) => {
-        switch (type) {
-            case "user_joined":
-            case "user_removed":
-            case "user_suspended":
-                return AppIcons.user;
-            case "role_changed":
-                return AppIcons.userGroup;
-            case "user_banned":
-                return AppIcons.unavailable;
-            case "user_shadowbanned":
-                return AppIcons.eyeClosed;
-            case "password_reset":
-                return AppIcons.lock;
-            case "community_created":
-                return AppIcons.userGroup;
-            case "community_suspended":
-                return AppIcons.unavailable;
-            case "community_deleted":
-                return AppIcons.delete;
-            default:
-                return AppIcons.user;
-        }
-    };
+    const activities: ActivityItem[] = data?.payload?.activities ?? [];
+    const totalPages = data?.payload?.meta?.totalPages ?? 1;
 
     if (isLoading) {
         return <Loader fullScreen={false} text="Loading activity logs..." />;
@@ -91,7 +91,7 @@ export default function ActivityLogs() {
                                 setActiveTab(tab.key);
                                 setPage(1);
                             }}
-                            className={`relative w-60 p-4 text-[13px] font-normal transition-colors cursor-pointer ${isActive ? "text-[#E31C5F]" : "text-[#666] hover:text-[#0A0D14]"
+                            className={`relative w-40 p-4 text-[13px] font-normal transition-colors cursor-pointer ${isActive ? "text-[#E31C5F]" : "text-[#666] hover:text-[#0A0D14]"
                                 }`}
                         >
                             {tab.label}
@@ -111,26 +111,25 @@ export default function ActivityLogs() {
                     </div>
                 ) : (
                     <div className="flex flex-col">
-                        {activities.map((item) => (
+                        {activities.map((item, index) => (
                             <div
-                                key={item.id}
-                                className="flex items-start gap-4 py-4 border-b border-[#F5F5F5] last:border-b-0"
+                                key={`${item.id}-${index}`}
+                                onClick={() => navigate(`/activity-logs/Details/${item.id}`, { state: { activity: item } })}
+                                className="flex items-start gap-4 py-4 border-b border-[#F5F5F5] last:border-b-0 cursor-pointer hover:bg-[#FAFAFA] transition-colors rounded-lg px-2 -mx-2"
                             >
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F5] text-sm flex-shrink-0">
-                                    <img src={getActivityIcon(item.type)} alt="" className="w-5 h-5" />
+                                    <img src={getActivityIcon(item.type, item.sub_type)} alt="" className="w-5 h-5" />
                                 </div>
 
                                 <div className="flex flex-col gap-1 flex-1 min-w-0">
                                     <p className="text-[14px] font-semibold text-[#0A0D14]">
                                         {item.title}
                                     </p>
-
                                     <p className="text-[13px] font-normal text-[#666]">
-                                        {item.description}
+                                        {item.desc}
                                     </p>
-
                                     <p className="text-[12px] font-normal text-[#969696]">
-                                        {item.time}
+                                        {formatTime(item.createdAt)}
                                     </p>
                                 </div>
                             </div>
