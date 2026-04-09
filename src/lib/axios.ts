@@ -55,10 +55,13 @@ axiosInstance.interceptors.response.use(
     }
 
     // Extract the backend error message and set it on error.message
-    // so every catch block gets the real message via error.message
-    const backendMessage = error.response?.data?.message;
-    if (backendMessage) {
-      error.message = backendMessage;
+    // so every catch block gets the real message via error.message.
+    // Array-format validation errors (e.g. [{field, message}]) are suppressed — no toast.
+    const data = error.response?.data;
+    if (Array.isArray(data)) {
+      error.message = '';
+    } else if (data?.message) {
+      error.message = data.message;
     }
 
     return Promise.reject(error);

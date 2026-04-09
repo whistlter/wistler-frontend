@@ -1,4 +1,6 @@
 import { useGet } from '@/hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 export interface AdminNotification {
     id: number;
@@ -31,4 +33,20 @@ export function useNotifications() {
         'admin/dashboard/notifications',
         { staleTime: 30 * 1000 }
     );
+}
+
+export function useMarkNotificationRead() {
+    const queryClient = useQueryClient();
+    return async (id: number) => {
+        await api.patch(`admin/dashboard/notifications/${id}/true`);
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    };
+}
+
+export function useMarkAllNotificationsRead() {
+    const queryClient = useQueryClient();
+    return async () => {
+        await api.patch('admin/dashboard/notifications/all/true');
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    };
 }
