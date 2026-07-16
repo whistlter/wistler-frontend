@@ -1,5 +1,4 @@
 import type {
-  OverviewAnalytics,
   UserBehaviorAnalytics,
   GrowthRetentionAnalytics,
   ContentPerformanceAnalytics,
@@ -33,61 +32,6 @@ const contentPreviewItems = (communityName?: string) => [
     communityName,
   },
 ];
-
-export const overviewAnalyticsMock: OverviewAnalytics = {
-  totalUsers: {
-    value: "24,820",
-    trend: { direction: "up", label: "+8% vs last 7 days" },
-    description: "Total number of registered users.",
-  },
-  activeUsers: {
-    value: "8,420",
-    trend: { direction: "up", label: "+5%" },
-    description: "Users who joined during the selected period",
-  },
-  totalCommunities: {
-    value: "320",
-    description: "Total number of communities created.",
-  },
-  activeCommunities: {
-    value: "210",
-    trend: { direction: "up", label: "+6%" },
-    description: "Communities with activity in the selected period",
-  },
-  contentCreated: {
-    value: "5,840",
-    trend: { direction: "up", label: "+10%" },
-    description: "Posts and Moments shared in the selected period",
-    breakdown: [
-      { label: "Posts: 3,200", color: "#0A68FF" },
-      { label: "Moments: 2,640", color: "#FF2860" },
-    ],
-  },
-  userActivityBreakdown: {
-    data: [
-      { label: "Posting", value: 13000 },
-      { label: "Commenting", value: 5000 },
-      { label: "Viewing", value: 10500 },
-      { label: "Reacting", value: 18500 },
-    ],
-    activeLabel: "Reacting",
-    legend: [
-      { label: "Posting", color: "#EFEFEF" },
-      { label: "Commenting", color: "#EFEFEF" },
-      { label: "Viewing", color: "#EFEFEF" },
-      { label: "Reacting", color: "#2873FF" },
-    ],
-  },
-  totalInteractions: {
-    centerValue: "18,240",
-    segments: [
-      { label: "Likes", value: 9876, displayValue: "9,876", color: "#324DFF" },
-      { label: "Comments", value: 8765, displayValue: "8,765", color: "#FF9F0A" },
-      { label: "Reactions", value: 7654, displayValue: "7,654", color: "#3FC8E4" },
-      { label: "Replies", value: 6543, displayValue: "6,543", color: "#1DBF73" },
-    ],
-  },
-};
 
 export const userBehaviorAnalyticsMock: UserBehaviorAnalytics = {
   weeklyActiveUsers: {

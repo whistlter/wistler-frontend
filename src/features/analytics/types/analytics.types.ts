@@ -82,3 +82,68 @@ export interface MomentsInsightsAnalytics {
   momentsCreated: StatMetric;
   activeMoments: StatMetric;
 }
+
+// Shared shapes used across the admin/analytics/* raw API responses.
+export interface AnalyticsChange {
+  percentage: number;
+  direction: "up" | "down";
+}
+
+export interface AnalyticsScore {
+  value: number;
+  previous_value: number;
+  change: AnalyticsChange;
+}
+
+export interface AnalyticsMetric {
+  total: number;
+  label: string;
+}
+
+export interface AnalyticsMetricWithScore extends AnalyticsMetric {
+  score: AnalyticsScore;
+}
+
+export interface AnalyticsPeriod {
+  startDate: string;
+  endDate: string;
+  previousStartDate: string;
+  previousEndDate: string;
+}
+
+// Raw shape returned by GET admin/analytics/overview
+export interface OverviewStatsContentCreated {
+  total: number;
+  previous: number;
+  totalMoment: number;
+  activePosts: number;
+  change: AnalyticsChange;
+  label: string;
+}
+
+export interface OverviewStatsResponse {
+  message: string;
+  payload: {
+    period: AnalyticsPeriod;
+    overview: {
+      totalUsers: AnalyticsMetric;
+      activeUsers: AnalyticsMetricWithScore;
+      totalCommunities: AnalyticsMetric;
+      activeCommunities: AnalyticsMetricWithScore;
+      contentCreated: OverviewStatsContentCreated;
+      comments: { total: number };
+    };
+    interactionRecords: {
+      posts: number;
+      moments: number;
+      likes: number;
+      momentLikes: number;
+      momentReactions: number;
+      comments: number;
+      replies: number;
+      mcomments: number;
+      mreplies: number;
+    };
+  };
+  status: string;
+}
