@@ -12,6 +12,7 @@ const Login = lazy(() => import("@/pages/login/Login"));
 const ForgotPassword = lazy(() => import("@/pages/login/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/login/ResetPassword"));
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
+const Analytics = lazy(() => import("@/pages/analytics/Analytics"));
 const Users = lazy(() => import("@/pages/users/Users"));
 const Communities = lazy(() => import("@/pages/communities/Communities"));
 const Moderation = lazy(() => import("@/pages/moderation/ModerationPage"));
@@ -40,6 +41,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route index element={<Dashboard />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="users" element={<Users />} />
             <Route path="community" element={<Communities />} />
             <Route path="moderation" element={<Moderation />} />

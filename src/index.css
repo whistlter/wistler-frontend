@@ -11,6 +11,15 @@ body {
 }
 
 @layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   .animate-enter {
     animation: enter 0.7s ease-in-out forwards;
   }
