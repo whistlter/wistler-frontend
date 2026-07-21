@@ -31,7 +31,7 @@ function buildMessage(payload: Record<string, unknown>): string {
     const projectName = (payload.project as Record<string, unknown>)?.name ?? 'Unknown Project';
     const branch = (deployment?.meta as Record<string, unknown>)?.githubCommitRef ?? 'unknown branch';
     const author = (deployment?.meta as Record<string, unknown>)?.githubCommitAuthorName ?? 'unknown';
-    const commitMsg = (deployment?.meta as Record<string, unknown>)?.githubCommitMessage ?? '';
+    const commitMsg = ((deployment?.meta as Record<string, unknown>)?.githubCommitMessage as string | undefined) ?? '';
     const url = deployment?.url ? `https://${deployment.url}` : '';
 
     const statusMap: Record<string, string> = {
