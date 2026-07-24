@@ -1,6 +1,8 @@
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { FileQuestion } from 'lucide-react';
 import { AppIcons } from '@/constants/constant';
 import { formatTime } from '@/lib/formatTime';
+import { EmptyState } from '@/components/common/EmptyState';
 import type { AdminNotification } from '@/features/notifications/hooks/useNotifications';
 
 function getNotificationIcon(type: string, subType: string): string {
@@ -94,16 +96,12 @@ export default function NotificationDetailsPage() {
     if (!notification) {
         return (
             <div className="flex w-full flex-col p-6">
-                <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-600">
-                    <h3 className="font-semibold mb-2">No notification data found</h3>
-                    <p className="text-sm">Please navigate here from the notifications panel.</p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="mt-4 text-[13px] font-medium text-[#ff3b6b] cursor-pointer"
-                    >
-                        ← Back to Dashboard
-                    </button>
-                </div>
+                <EmptyState
+                    icon={FileQuestion}
+                    title="No notification data found"
+                    description="Please navigate here from the notifications panel."
+                    action={{ label: '← Back to Dashboard', onClick: () => navigate('/') }}
+                />
             </div>
         );
     }

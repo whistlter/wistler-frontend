@@ -1,29 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
 import { useGet } from "@/hooks/useApi";
-import {
-  userBehaviorAnalyticsMock,
-  growthRetentionAnalyticsMock,
-  contentPerformanceAnalyticsMock,
-  communityPerformanceAnalyticsMock,
-  momentsInsightsAnalyticsMock,
-} from "../data/mockAnalytics";
-import type { OverviewAnalytics, OverviewStatsResponse } from "../types/analytics.types";
-
-// NOTE: the remaining hooks below still resolve local mock data shaped like a
-// future API response. Swapping one to a real endpoint later only requires
-// replacing the `queryFn` with `() => api.get<T>('admin/analytics/...')`
-// (see useGet in src/hooks/useApi.ts), following the pattern used by useOverviewAnalytics.
-function mockQuery<T>(key: string, data: T) {
-  return () =>
-    useQuery<T>({
-      queryKey: ["analytics", key],
-      queryFn: () => Promise.resolve(data),
-      staleTime: 5 * 60 * 1000,
-    });
-}
+import type {
+  OverviewAnalytics,
+  OverviewStatsResponse,
+  GrowthRetentionAnalytics,
+  GrowthRetentionStatsResponse,
+  ContentPerformanceAnalytics,
+  ContentPerformanceStatsResponse,
+  MomentsInsightsAnalytics,
+  MomentInsightStatsResponse,
+  StatMetric,
+  AnalyticsChange,
+  AnalyticsMetric,
+  AnalyticsMetricWithScore,
+} from "../types/analytics.types";
 
 function formatNumber(value: number): string {
   return value.toLocaleString("en-US");
+}
+
+function buildDateQuery(startDate?: string, endDate?: string): string {
+  const params = new URLSearchParams();
+  if (startDate) params.append("startDate", startDate);
+  if (endDate) params.append("endDate", endDate);
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 function toTrend(change: { percentage: number; direction: "up" | "down" }) {
@@ -96,10 +96,102 @@ function mapOverviewResponse(response: OverviewStatsResponse): OverviewAnalytics
   };
 }
 
-export function useOverviewAnalytics() {
-  const query = useGet<OverviewStatsResponse>(["analytics", "overview"], "admin/analytics/overview", {
-    staleTime: 5 * 60 * 1000,
-  });
+function toStatMetric(metric?: AnalyticsMetric | AnalyticsMetricWithScore): StatMetric | undefined {
+  if (!metric || typeof metric.total !== "number") return undefined;
+  const change: AnalyticsChange | undefined = (metric as AnalyticsMetricWithScore)?.score?.change;
+  return {
+    value: formatNumber(metric.total),
+    trend: change ? toTrend(change) : undefined,
+    description: metric.label ?? "",
+  };
+}
+
+function mapGrowthRetentionResponse(response: GrowthRetentionStatsResponse): GrowthRetentionAnalytics | undefined {
+  const payload = response?.payload;
+  if (!payload) return undefined;
+
+  const growthRate = payload.growth?.growthRate;
+  const newUsersMetric = payload.growth?.newUsers;
+  const trend = payload.userGrowthTrend;
+  const graph = Array.isArray(trend?.graph) ? trend.graph : [];
+  const currentMonthPoint = graph.find((point) => point.monthKey === trend?.period?.currentMonth);
+
+  return {
+    userGrowthRate:
+      growthRate && typeof growthRate.total === "string"
+        ? {
+            value: growthRate.total,
+            trend: growthRate.score?.change ? toTrend(growthRate.score.change) : undefined,
+            description: growthRate.label ?? "",
+          }
+        : undefined,
+    newUsers: toStatMetric(newUsersMetric),
+    userGrowthTrend:
+      graph.length > 0
+        ? {
+            data: graph.map((point) => ({ label: point.month, value: point.totalUsers })),
+            activeLabel: currentMonthPoint?.month ?? "",
+            value: `${formatNumber(trend?.summary?.currentMonthUsers ?? 0)} Users`,
+            trend: trend?.summary?.change ? toTrend(trend.summary.change) : { direction: "up", label: "" },
+          }
+        : undefined,
+  };
+}
+
+function mapContentPerformanceResponse(
+  response: ContentPerformanceStatsResponse,
+): ContentPerformanceAnalytics | undefined {
+  const payload = response?.payload;
+  if (!payload) return undefined;
+  const performance = payload.performance;
+
+  return {
+    postsCreated: toStatMetric(performance?.posts),
+    momentsCreated: toStatMetric(performance?.moments),
+    commentsPerPost: toStatMetric(performance?.postComments),
+  };
+}
+
+function mapMomentInsightResponse(response: MomentInsightStatsResponse): MomentsInsightsAnalytics | undefined {
+  const payload = response?.payload;
+  if (!payload) return undefined;
+
+  const performance = payload.performance;
+  const topMoments = payload.insightRecords?.topMoments;
+  const trend = payload.momentGrowthTrend;
+  const graph = Array.isArray(trend?.graph) ? trend.graph : [];
+  const currentMonthPoint = graph.find((point) => point.monthKey === trend?.period?.currentMonth);
+
+  return {
+    momentsCreated: toStatMetric(performance?.moments),
+    engagementPerMoment: toStatMetric(performance?.averageEngagement),
+    topMoments: Array.isArray(topMoments)
+      ? topMoments.map((moment) => ({
+          id: String(moment.id),
+          category: "Moment",
+          title: moment.post,
+          likes: moment.likes_count,
+          comments: moment.comments_count,
+        }))
+      : undefined,
+    momentsActivityTrend:
+      graph.length > 0
+        ? {
+            data: graph.map((point) => ({ label: point.month, value: point.totalMoments })),
+            activeLabel: currentMonthPoint?.month ?? "",
+            value: `${formatNumber(trend?.summary?.currentMonthMoments ?? 0)} moments`,
+            trend: trend?.summary?.change ? toTrend(trend.summary.change) : { direction: "up", label: "" },
+          }
+        : undefined,
+  };
+}
+
+export function useOverviewAnalytics(startDate?: string, endDate?: string) {
+  const query = useGet<OverviewStatsResponse>(
+    ["analytics", "overview", startDate ?? "", endDate ?? ""],
+    `admin/analytics/overview${buildDateQuery(startDate, endDate)}`,
+    { staleTime: 5 * 60 * 1000 },
+  );
 
   return {
     ...query,
@@ -107,8 +199,41 @@ export function useOverviewAnalytics() {
   };
 }
 
-export const useUserBehaviorAnalytics = mockQuery("user-behavior", userBehaviorAnalyticsMock);
-export const useGrowthRetentionAnalytics = mockQuery("growth-retention", growthRetentionAnalyticsMock);
-export const useContentPerformanceAnalytics = mockQuery("content-performance", contentPerformanceAnalyticsMock);
-export const useCommunityPerformanceAnalytics = mockQuery("community-performance", communityPerformanceAnalyticsMock);
-export const useMomentsInsightsAnalytics = mockQuery("moments-insights", momentsInsightsAnalyticsMock);
+export function useGrowthRetentionAnalytics(startDate?: string, endDate?: string) {
+  const query = useGet<GrowthRetentionStatsResponse>(
+    ["analytics", "growth-retention", startDate ?? "", endDate ?? ""],
+    `admin/analytics/growth-retention${buildDateQuery(startDate, endDate)}`,
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+  return {
+    ...query,
+    data: query.data ? mapGrowthRetentionResponse(query.data) : undefined,
+  };
+}
+
+export function useContentPerformanceAnalytics(startDate?: string, endDate?: string) {
+  const query = useGet<ContentPerformanceStatsResponse>(
+    ["analytics", "content-performance", startDate ?? "", endDate ?? ""],
+    `admin/analytics/content-performance${buildDateQuery(startDate, endDate)}`,
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+  return {
+    ...query,
+    data: query.data ? mapContentPerformanceResponse(query.data) : undefined,
+  };
+}
+
+export function useMomentsInsightsAnalytics(startDate?: string, endDate?: string) {
+  const query = useGet<MomentInsightStatsResponse>(
+    ["analytics", "moments-insights", startDate ?? "", endDate ?? ""],
+    `admin/analytics/moment-insight${buildDateQuery(startDate, endDate)}`,
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+  return {
+    ...query,
+    data: query.data ? mapMomentInsightResponse(query.data) : undefined,
+  };
+}

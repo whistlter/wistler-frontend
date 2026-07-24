@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Button } from "@/components/button/Button";
 import { BUTTON_TYPE } from "@/components/button/constants";
 import { AppIcons } from "@/constants/constant";
-import { CheckCheck } from 'lucide-react';
+import { CheckCheck, Bell } from 'lucide-react';
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/features/notifications/hooks/useNotifications';
 import type { AdminNotification } from '@/features/notifications/hooks/useNotifications';
 import { formatTime } from '@/lib/formatTime';
+import { EmptyState } from '@/components/common/EmptyState';
 
 type NotificationModalProps = {
     close: () => void;
@@ -133,9 +134,12 @@ export const NotificationModal = ({ close, onNavigate }: NotificationModalProps)
                 ))}
 
                 {!isLoading && notifications.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-40 text-[#666]">
-                        <p className="text-sm">No notifications found</p>
-                    </div>
+                    <EmptyState
+                        variant="plain"
+                        icon={Bell}
+                        title="No notifications found"
+                        description="You're all caught up."
+                    />
                 )}
             </div>
 

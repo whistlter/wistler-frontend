@@ -1,6 +1,8 @@
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { FileQuestion } from 'lucide-react';
 import { AppIcons } from '@/constants/constant';
 import { formatTime } from '@/lib/formatTime';
+import { EmptyState } from '@/components/common/EmptyState';
 import type { ActivityItem } from '@/features/activities/hooks/useActivities';
 
 function getActivityIcon(type: string, subType: string): string {
@@ -110,16 +112,12 @@ export default function ActivityDetailsPage() {
     if (!activity) {
         return (
             <div className="flex w-full flex-col p-6">
-                <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-600">
-                    <h3 className="font-semibold mb-2">No activity data found</h3>
-                    <p className="text-sm">Please navigate here from the activity logs or dashboard.</p>
-                    <button
-                        onClick={() => navigate('/activity-logs')}
-                        className="mt-4 text-[13px] font-medium text-[#ff3b6b] cursor-pointer"
-                    >
-                        ← Back to Activity Logs
-                    </button>
-                </div>
+                <EmptyState
+                    icon={FileQuestion}
+                    title="No activity data found"
+                    description="Please navigate here from the activity logs or dashboard."
+                    action={{ label: '← Back to Activity Logs', onClick: () => navigate('/activity-logs') }}
+                />
             </div>
         );
     }
