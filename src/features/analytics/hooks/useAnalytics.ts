@@ -172,6 +172,7 @@ function mapMomentInsightResponse(response: MomentInsightStatsResponse): Moments
           title: moment.post,
           likes: moment.likes_count,
           comments: moment.comments_count,
+          image: moment.image,
         }))
       : undefined,
     momentsActivityTrend:

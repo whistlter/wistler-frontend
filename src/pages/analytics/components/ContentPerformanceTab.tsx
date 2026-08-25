@@ -45,7 +45,7 @@ export function ContentPerformanceTab({ startDate, endDate }: Props) {
             icon={AiContentGeneratorIcon}
             iconBg="#EAF0FF"
             iconColor="#2869FF"
-            title="Posts created"
+            title="Community Posts created"
             value={data.postsCreated.value}
             description={data.postsCreated.description}
           />
@@ -108,7 +108,7 @@ export function ContentPerformanceTab({ startDate, endDate }: Props) {
             icon={AiContentGeneratorIcon}
             iconBg="#FCEAFF"
             iconColor="#E228FF"
-            title="Top performing posts"
+            title="Top performing community posts"
             items={data.topPosts}
             variant="wide"
           />
@@ -123,12 +123,12 @@ export function ContentPerformanceTab({ startDate, endDate }: Props) {
             icon={MessageMultipleIcon}
             iconBg="#EAEDFF"
             iconColor="#2845FF"
-            title="Post comments"
+            title="Community Post Comments"
             value={data.commentsPerPost.value}
             description={data.commentsPerPost.description}
           />
         ) : (
-          <ComingSoonCard icon={MessageMultipleIcon} iconBg="#EAEDFF" iconColor="#2845FF" title="Post comments" height={60} />
+          <ComingSoonCard icon={MessageMultipleIcon} iconBg="#EAEDFF" iconColor="#2845FF" title="Community Post Comments" height={60} />
         )}
         {data.topMoments ? (
           <ContentPreviewList
