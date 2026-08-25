@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppIcons } from "@/constants/constant";
 import { useSearchStore } from "@/stores/searchStore";
+import { Activity } from "lucide-react";
 import { Pagination } from "@/components/pagination/Pagination";
-import { Loader } from "@/components/common/Loader";
+import { Skeleton } from "@/components/common/Skeleton";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useActivities } from "@/features/activities/hooks/useActivities";
 import type { ActivityItem } from "@/features/activities/hooks/useActivities";
 import { formatTime } from "@/lib/formatTime";
@@ -64,10 +66,6 @@ export default function ActivityLogs() {
     const activities: ActivityItem[] = data?.payload?.activities ?? [];
     const totalPages = data?.payload?.meta?.totalPages ?? 1;
 
-    if (isLoading) {
-        return <Loader fullScreen={false} text="Loading activity logs..." />;
-    }
-
     return (
         <div className="flex w-full flex-col">
             {/* HEADER */}
@@ -105,10 +103,28 @@ export default function ActivityLogs() {
 
             {/* ACTIVITY LIST */}
             <div className="p-6">
-                {activities.length === 0 ? (
-                    <div className="rounded-xl border border-[#E8E8E8] bg-white py-12 text-center text-[13px] text-[#969696]">
-                        No activity logs found
+                {isLoading ? (
+                    <div className="flex flex-col">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="flex items-start gap-4 py-4 border-b border-[#F5F5F5] last:border-b-0 px-2 -mx-2"
+                            >
+                                <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                    <Skeleton className="h-3.5 w-1/3" />
+                                    <Skeleton className="h-3 w-2/3" />
+                                    <Skeleton className="h-2.5 w-20" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
+                ) : activities.length === 0 ? (
+                    <EmptyState
+                        icon={Activity}
+                        title="No activity logs found"
+                        description="Try adjusting your search or check back later."
+                    />
                 ) : (
                     <div className="flex flex-col">
                         {activities.map((item, index) => (

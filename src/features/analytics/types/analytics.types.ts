@@ -46,22 +46,22 @@ export interface UserBehaviorAnalytics {
 }
 
 export interface GrowthRetentionAnalytics {
-  userGrowthTrend: { data: AreaDatum[]; activeLabel: string; value: string; trend: TrendInfo };
-  userComposition: { data: BarDatum[]; activeLabel: string; legend: { label: string; color: string }[] };
-  userGrowthRate: StatMetric;
-  retentionRate: { centerValue: string; rings: RadialRing[] };
-  newUsers: StatMetric;
-  returningUsers: StatMetric;
+  userGrowthTrend?: { data: AreaDatum[]; activeLabel: string; value: string; trend: TrendInfo };
+  userComposition?: { data: BarDatum[]; activeLabel: string; legend: { label: string; color: string }[] };
+  userGrowthRate?: StatMetric;
+  retentionRate?: { centerValue: string; rings: RadialRing[] };
+  newUsers?: StatMetric;
+  returningUsers?: StatMetric;
 }
 
 export interface ContentPerformanceAnalytics {
-  topMoments: ContentPreviewItem[];
-  topPosts: ContentPreviewItem[];
-  postsCreated: StatMetric;
-  averageViewsPerMoment: StatMetric;
-  completionRate: StatMetric;
-  momentsCreated: StatMetric;
-  commentsPerPost: StatMetric;
+  topMoments?: ContentPreviewItem[];
+  topPosts?: ContentPreviewItem[];
+  postsCreated?: StatMetric;
+  averageViewsPerMoment?: StatMetric;
+  completionRate?: StatMetric;
+  momentsCreated?: StatMetric;
+  commentsPerPost?: StatMetric;
 }
 
 export interface CommunityPerformanceAnalytics {
@@ -74,13 +74,13 @@ export interface CommunityPerformanceAnalytics {
 }
 
 export interface MomentsInsightsAnalytics {
-  engagementPerMoment: StatMetric;
-  averageViewsPerMoment: StatMetric;
-  usersDropOff: { steps: FunnelStep[]; value: string; trend: TrendInfo };
-  topMoments: ContentPreviewItem[];
-  momentsActivityTrend: { data: AreaDatum[]; activeLabel: string; value: string; trend: TrendInfo };
-  momentsCreated: StatMetric;
-  activeMoments: StatMetric;
+  engagementPerMoment?: StatMetric;
+  averageViewsPerMoment?: StatMetric;
+  usersDropOff?: { steps: FunnelStep[]; value: string; trend: TrendInfo };
+  topMoments?: ContentPreviewItem[];
+  momentsActivityTrend?: { data: AreaDatum[]; activeLabel: string; value: string; trend: TrendInfo };
+  momentsCreated?: StatMetric;
+  activeMoments?: StatMetric;
 }
 
 // Shared shapes used across the admin/analytics/* raw API responses.
@@ -143,6 +143,103 @@ export interface OverviewStatsResponse {
       replies: number;
       mcomments: number;
       mreplies: number;
+    };
+  };
+  status: string;
+}
+
+// Raw shape returned by GET admin/analytics/growth-retention
+export interface MonthlyTrendPeriod {
+  endDate: string;
+  graphStartMonth: string;
+  graphEndMonth: string;
+  currentMonth: string;
+  previousMonth: string;
+}
+
+export interface GrowthRetentionStatsResponse {
+  message: string;
+  payload: {
+    period: AnalyticsPeriod;
+    growth: {
+      growthRate: { total: string; score: AnalyticsScore; label: string };
+      newUsers: { total: number; score: AnalyticsScore; label: string };
+    };
+    userGrowthTrend: {
+      period: MonthlyTrendPeriod;
+      summary: {
+        currentMonthUsers: number;
+        previousMonthUsers: number;
+        change: AnalyticsChange;
+        label: string;
+      };
+      graph: { month: string; monthKey: string; totalUsers: number }[];
+    };
+  };
+  status: string;
+}
+
+// Raw shape returned by GET admin/analytics/content-performance
+export interface ContentPerformanceStatsResponse {
+  message: string;
+  payload: {
+    period: AnalyticsPeriod;
+    performance: {
+      posts: AnalyticsMetric;
+      moments: AnalyticsMetric;
+      postComments: AnalyticsMetric;
+      momentComments: AnalyticsMetric;
+    };
+  };
+  status: string;
+}
+
+// Raw shape returned by GET admin/analytics/moment-insight
+export interface MomentRecord {
+  id: number;
+  interest_id: number;
+  moment_parent_id: number | null;
+  user_id: number;
+  post: string;
+  description: string;
+  default_media_type: string;
+  image: string | null;
+  likes_count: number;
+  comments_count: number;
+  reposts_count: number;
+  is_anonymous: string;
+  status: string;
+  is_pinned: boolean;
+  deleted_at: string | null;
+  is_deleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+  momentParentId: number | null;
+  interestId: number;
+  total_count: number;
+}
+
+export interface MomentInsightStatsResponse {
+  message: string;
+  payload: {
+    period: AnalyticsPeriod;
+    performance: {
+      moments: AnalyticsMetricWithScore;
+      averageEngagement: AnalyticsMetricWithScore;
+    };
+    insightRecords: {
+      topMoments: MomentRecord[];
+    };
+    momentGrowthTrend: {
+      period: MonthlyTrendPeriod;
+      summary: {
+        currentMonthMoments: number;
+        previousMonthMoments: number;
+        change: AnalyticsChange;
+        label: string;
+      };
+      graph: { month: string; monthKey: string; totalMoments: number }[];
     };
   };
   status: string;

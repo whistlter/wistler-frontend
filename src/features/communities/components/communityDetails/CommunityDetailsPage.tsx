@@ -16,6 +16,9 @@ import { NavLink } from "react-router-dom";
 import { useCommunity, useSuspendCommunity, useActivateCommunity, useSoftDeleteCommunity } from "@/features/communities/hooks/useCommunity";
 import { AxiosError } from "axios";
 import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
+import { DetailsPageSkeleton } from "@/components/common/DetailsPageSkeleton";
+import { EmptyState } from "@/components/common/EmptyState";
+import { SearchX } from "lucide-react";
 
 
 type Tab = "overview" | "Members" | "Posts";
@@ -67,11 +70,7 @@ export default function CommunityDetailsPage() {
        LOADING STATE
     ---------------------------- */
     if (isLoading) {
-        return (
-            <div className="py-20 text-center text-[13px] text-[#969696]">
-                Loading community data…
-            </div>
-        );
+        return <DetailsPageSkeleton tabCount={3} />;
     }
 
     /* ----------------------------
@@ -79,8 +78,8 @@ export default function CommunityDetailsPage() {
     ---------------------------- */
     if (!community) {
         return (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                No community data available
+            <div className="p-6">
+                <EmptyState icon={SearchX} title="No community data available" description="This community could not be found." />
             </div>
         );
     }

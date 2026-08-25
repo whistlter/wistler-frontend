@@ -13,6 +13,9 @@ import { MomentOverviewTab } from './pages/momentOverview';
 import { MomentPosts } from './pages/momentPosts';
 import { MomentMembers } from './pages/momentMembers';
 import { MomentReportedContent } from './pages/momentReportedContent';
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { SearchX } from 'lucide-react';
 
 type Tab = 'Overview' | 'Posts' | 'Members' | 'Reported Content';
 
@@ -45,17 +48,13 @@ export default function MomentDetailsPage() {
     }
 
     if (isLoading) {
-        return (
-            <div className="py-20 text-center text-[13px] text-[#969696]">
-                Loading moment data…
-            </div>
-        );
+        return <DetailsPageSkeleton tabCount={4} />;
     }
 
     if (!moment) {
         return (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                No moment data available
+            <div className="p-6">
+                <EmptyState icon={SearchX} title="No moment data available" description="This moment could not be found." />
             </div>
         );
     }

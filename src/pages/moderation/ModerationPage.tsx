@@ -1,9 +1,12 @@
 // src/features/moderation/ModerationPage.tsx
 import { useState } from "react";
+import { ShieldAlert } from "lucide-react";
 import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { FlaggedTab } from "@/features/moderation/components/FlaggedTab";
 import { ReviewTab } from "@/features/moderation/components/ReviewTab";
 import { OverviewTab } from "@/features/moderation/components/overview";
+import { ModerationOverviewSkeleton } from "@/features/moderation/components/ModerationOverviewSkeleton";
+import { EmptyState } from "@/components/common/EmptyState";
 
 
 type Tab = "overview" | "flagged" | "review";
@@ -25,28 +28,6 @@ export default function ModerationPage() {
         return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
                 {(error as Error)?.message ?? "Failed to load moderation data"}
-            </div>
-        );
-    }
-
-    /* ----------------------------
-       LOADING STATE
-    ---------------------------- */
-    if (isLoading) {
-        return (
-            <div className="py-20 text-center text-[13px] text-[#969696]">
-                Loading moderation data…
-            </div>
-        );
-    }
-
-    /* ----------------------------
-       NO DATA STATE
-    ---------------------------- */
-    if (!stats) {
-        return (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                No moderation data available
             </div>
         );
     }
@@ -89,7 +70,19 @@ export default function ModerationPage() {
 
             {/* TAB CONTENT */}
             {activeTab === "overview" && (
-                <OverviewTab stats={stats} activities={activities || []} />
+                isLoading ? (
+                    <ModerationOverviewSkeleton />
+                ) : !stats ? (
+                    <div className="p-6">
+                        <EmptyState
+                            icon={ShieldAlert}
+                            title="No moderation data available"
+                            description="Moderation stats and activity will appear here once available."
+                        />
+                    </div>
+                ) : (
+                    <OverviewTab stats={stats} activities={activities || []} />
+                )
             )}
             {activeTab === "flagged" && <FlaggedTab />}
             {activeTab === "review" && <ReviewTab />}

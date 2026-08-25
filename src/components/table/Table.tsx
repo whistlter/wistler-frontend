@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import type { TableColumn, TableAction } from "./types";
 import { USER_TABLE_VARIANTE } from "./enum/TableEnum";
 import { statusToColor } from "@/utils/helper";
+import { EmptyState } from "@/components/common/EmptyState";
 
 // Portal component for rendering overlay
 function Portal({ children }: { children: React.ReactNode }) {
@@ -144,11 +145,10 @@ export function Table<T extends {
 
     if (!data || data.length === 0) {
         return (
-            <div className="flex flex-col items-start gap-2 self-stretch rounded-xl border border-[#E8E8E8] bg-white p-8">
-                <div className="flex items-center justify-center w-full py-12 text-gray-500">
-                    No data available
-                </div>
-            </div>
+            <EmptyState
+                title="No data available"
+                description="There are no records to display yet."
+            />
         );
     }
 

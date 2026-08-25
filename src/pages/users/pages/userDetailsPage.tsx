@@ -14,8 +14,10 @@ import { useModal } from "@/components/modal";
 import { useUser, useBlockUser, useActivateUser, useResetUserPassword } from "@/features/users/hooks/useUsers";
 import { useModeration } from "@/features/moderation/hooks/useModerator";
 import { statusToColor } from "@/utils/helper";
-import { Loader } from "@/components/common/Loader";
+import { UserDetailsSkeleton } from "@/features/users/components/UserDetailsSkeleton";
 import { showSuccessToast, showErrorToast, getErrorMessage } from "@/components/common/toastUtils";
+import { EmptyState } from "@/components/common/EmptyState";
+import { UserX } from "lucide-react";
 
 type Tab = "Communities" | "Activities";
 
@@ -55,9 +57,7 @@ export default function UserDetailsPage() {
        LOADING STATE
     ---------------------------- */
     if (isUserLoading || isModLoading) {
-        return (
-            <Loader fullScreen={false} text="Loading user details..." />
-        );
+        return <UserDetailsSkeleton />;
     }
 
     /* ----------------------------
@@ -65,8 +65,8 @@ export default function UserDetailsPage() {
     ---------------------------- */
     if (!user) {
         return (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                No user data available
+            <div className="p-6">
+                <EmptyState icon={UserX} title="No user data available" description="This user could not be found." />
             </div>
         );
     }

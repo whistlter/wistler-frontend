@@ -1,6 +1,8 @@
 // src/features/moderation/components/OverviewTab.tsx
 
+import { Activity } from "lucide-react";
 import { AppIcons } from "@/constants/constant";
+import { EmptyState } from "@/components/common/EmptyState";
 
 type ModerationStats = {
     flaggedPosts: number;
@@ -38,9 +40,11 @@ export function ActivitiesLog({ activities }: Omit<OverviewTabProps, 'stats'>) {
             <div>
 
                 {!activities || activities.length === 0 ? (
-                    <div className="rounded-xl border border-[#E8E8E8] bg-white py-12 text-center text-[13px] text-[#969696]">
-                        No recent activity
-                    </div>
+                    <EmptyState
+                        icon={Activity}
+                        title="No recent activity"
+                        description="Activity will show up here as it happens."
+                    />
                 ) : (
                     <div className="flex flex-col gap-4 px-6">
                         {activities.map((item) => (
