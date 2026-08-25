@@ -11,6 +11,7 @@ export type ContentPreviewItem = {
   likes: number;
   comments: number;
   communityName?: string;
+  image?: string | null;
 };
 
 type Props = CardIconProps & {
@@ -24,6 +25,13 @@ type Props = CardIconProps & {
 const ITEM_HEIGHT: Record<"square" | "wide", number> = { square: 90, wide: 124 };
 const VISIBLE_ITEMS: Record<"square" | "wide", number> = { square: 2.3, wide: 1.68 };
 const ITEM_GAP = 8;
+
+function Thumbnail({ image, alt, className }: { image?: string | null; alt: string; className: string }) {
+  if (!image) {
+    return <div className={`${className} shrink-0 bg-[#EFEFF3]`} aria-hidden="true" />;
+  }
+  return <img src={image} alt={alt} className={`${className} shrink-0 object-cover`} />;
+}
 
 function EngagementRow({ item }: { item: ContentPreviewItem }) {
   return (
@@ -53,20 +61,12 @@ export function ContentPreviewList({ icon, iconBg, iconColor, title, items, vari
           variant === "wide" ? (
             <div key={item.id} className="flex flex-col gap-3 rounded-xl border border-[#EFEFF3] p-3">
               <div className="flex items-center gap-3">
-                <img
-                  src={`https://picsum.photos/seed/${item.id}/108/74`}
-                  alt=""
-                  className="h-[37px] w-[54px] shrink-0 rounded-lg object-cover"
-                />
+                <Thumbnail image={item.image} alt="" className="h-[37px] w-[54px] rounded-lg" />
                 <p className="line-clamp-2 text-[12px] font-medium text-[#1A1A1A]">{item.title}</p>
               </div>
               {item.communityName && (
                 <span className="flex items-center gap-2 text-[12px] font-medium text-[#666]">
-                  <img
-                    src={`https://picsum.photos/seed/${item.communityName}/40/40`}
-                    alt=""
-                    className="h-5 w-5 shrink-0 rounded-full object-cover"
-                  />
+                  <Thumbnail image={null} alt="" className="h-5 w-5 rounded-full" />
                   {item.communityName}
                 </span>
               )}
@@ -75,22 +75,14 @@ export function ContentPreviewList({ icon, iconBg, iconColor, title, items, vari
           ) : (
             <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-[#EFEFF3] p-3">
               <div className="flex items-center gap-2">
-                <img
-                  src={`https://picsum.photos/seed/${item.id}/64/64`}
-                  alt=""
-                  className="h-8 w-8 shrink-0 rounded-lg object-cover"
-                />
+                <Thumbnail image={item.image} alt="" className="h-8 w-8 rounded-lg" />
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] font-medium text-[#484848]">{item.category}</span>
                   <span className="text-[12px] font-medium text-[#1A1A1A]">{item.title}</span>
                 </div>
                 {item.communityName && (
                   <span className="ml-auto flex items-center gap-1 rounded-2xl border border-[#E9E9ED] px-2 py-1 text-[12px] font-medium text-[#666]">
-                    <img
-                      src={`https://picsum.photos/seed/${item.communityName}/40/40`}
-                      alt=""
-                      className="h-5 w-5 shrink-0 rounded-full object-cover"
-                    />
+                    <Thumbnail image={null} alt="" className="h-5 w-5 rounded-full" />
                     {item.communityName}
                   </span>
                 )}
